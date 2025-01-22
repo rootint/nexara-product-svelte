@@ -14,7 +14,7 @@
 			} else {
 				throw Error('Пароли не совпадают');
 			}
-			goto('/');
+			// goto('/');
 		} catch (e) {
 			error = e.message;
 		}

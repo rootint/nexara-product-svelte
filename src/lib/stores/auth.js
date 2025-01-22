@@ -32,7 +32,7 @@ function createAuthStore() {
 					user: email // Or decode JWT for more user info
 				});
 
-				// goto('/');
+				goto('/');
 			} catch (error) {
 				throw error;
 			}

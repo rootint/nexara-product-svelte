@@ -22,7 +22,7 @@
     // but also check for token expiration
 	onMount(() => {
 		if ($authStore.isAuthenticated) {
-			goto('/dashboard');
+			goto('/');
 		}
 	});
 </script>

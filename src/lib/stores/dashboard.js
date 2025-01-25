@@ -14,6 +14,7 @@ function createDashboardStore() {
 	});
   
 	const api = new ApiClient('https://api-test.nexara.ru');
+  const api = new ApiClient('https://api.nexara.ru');
 	// const api = new ApiClient('http://localhost:8000');
 
 	return {

@@ -156,7 +156,7 @@
 			// await dashboardStore.getCredits(inputCredits, $das/hboardStore.apiKey);
 		} catch (error) {
 			// Handle UI-specific error presentation
-			console.error('Failed to create API key:', error);
+			console.error(error);
 		}
 	}
 </script>

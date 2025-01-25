@@ -1,5 +1,6 @@
 // const BASE_URL = 'http://localhost:8000';
-const BASE_URL = 'https://api-test.nexara.ru';
+// const BASE_URL = 'https://api-test.nexara.ru';
+const BASE_URL = 'https://api.nexara.ru';
 
 export class AuthApi {
 	// Basic fetch wrapper for authentication requests

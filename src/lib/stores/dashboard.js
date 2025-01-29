@@ -12,9 +12,9 @@ function createDashboardStore() {
 		isLoading: false,
 		error: null
 	});
-  
+
 	// const api = new ApiClient('https://api-test.nexara.ru');
-  const api = new ApiClient('https://api.nexara.ru');
+	const api = new ApiClient('https://api.nexara.ru');
 	// const api = new ApiClient('http://localhost:8000');
 
 	return {
@@ -53,8 +53,6 @@ function createDashboardStore() {
 					method: 'GET'
 				});
 
-				console.log(result);
-
 				set({
 					personalPrice: result.rate,
 					email: result.email,
@@ -64,12 +62,14 @@ function createDashboardStore() {
 					isLoading: false,
 					error: null
 				});
+				return true;
 			} catch (error) {
 				update((state) => ({
 					...state,
 					error: error.message,
 					isLoading: false
 				}));
+				return false;
 			}
 		},
 
@@ -77,8 +77,6 @@ function createDashboardStore() {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
-				console.log(apiKey);
-				console.log(amount);
 				const result = await api.makeRequest(
 					'/pay',
 					{

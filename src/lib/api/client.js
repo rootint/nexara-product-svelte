@@ -8,10 +8,10 @@ export class ApiClient {
 	async makeRequest(endpoint, options = {}, body = null) {
 		const token = localStorage.getItem('auth_token');
 
-    const headers = {
-      ...options.headers,
-      Authorization: token ? `Bearer ${token}` : '',
-    };
+		const headers = {
+			...options.headers,
+			Authorization: token ? `Bearer ${token}` : ''
+		};
 
 		if (body) {
 			headers['Content-Type'] = 'application/json';
@@ -26,7 +26,9 @@ export class ApiClient {
 		if (!response.ok) {
 			if (response.status === 401) {
 				// Token expired or invalid - redirect to login
-				goto('/login');
+				// goto('/login');
+        throw new Error('API request failed');
+				return { error: 401 };
 			}
 			throw new Error('API request failed');
 		}

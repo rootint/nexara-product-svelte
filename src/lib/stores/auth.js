@@ -63,12 +63,17 @@ function createAuthStore() {
 		// Initialize store from localStorage on app start
 		initialize() {
 			const token = localStorage.getItem('auth_token');
-			if (token) {
-				set({
-					isAuthenticated: true,
-					token,
-					user: null // You might want to decode the JWT here
-				});
+			try {
+				if (token) {
+					set({
+						isAuthenticated: true,
+						token,
+						user: null // You might want to decode the JWT here
+					});
+				}
+			} catch (e) {
+				set({ isAuthenticated: false, token: null, user: null });
+				goto('/login');
 			}
 		}
 	};

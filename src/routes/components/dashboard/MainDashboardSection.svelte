@@ -123,7 +123,7 @@
 				<div class="top-row">
 					<p class="card-title">Баланс</p>
 					<div class="personal-rate">
-						{$dashboardStore.personalPrice * 60} ₽ / мин
+						{($dashboardStore.personalPrice * 60).toLocaleString('ru-RU')} ₽ / мин
 					</div>
 				</div>
 				<h2 class="money-left">

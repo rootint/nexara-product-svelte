@@ -115,8 +115,8 @@
 {:else}
 	<div class="main-container">
 		<div class="top-bar">
-			<h3>Главная</h3>
-			<p class="user-id">User ID: {$dashboardStore.userId}</p>
+			<h3>{$dashboardStore.email}</h3>
+			<p class="user-id">User ID : {$dashboardStore.userId}</p>
 		</div>
 		<div class="card-grid">
 			<div class="card">

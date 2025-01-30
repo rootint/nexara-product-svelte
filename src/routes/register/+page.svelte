@@ -1,5 +1,6 @@
 <script lang="js">
 	import { authStore } from '$lib/stores/auth';
+	import { dashboardStore } from '$lib/stores/dashboard';
 	import Header from '../components/Header.svelte';
 
 	let email = '';
@@ -11,6 +12,7 @@
 		try {
 			if (password === confirmPassword) {
 				await authStore.register(email, password);
+				await dashboardStore.createApiKey();
 			} else {
 				throw Error('Пароли не совпадают');
 			}
@@ -57,7 +59,7 @@
 			<input type="email" bind:value={email} placeholder="test@mail.ru" />
 			<p>Пароль</p>
 			<input type="password" bind:value={password} placeholder="password" />
-            <p>Подтвердите пароль</p>
+			<p>Подтвердите пароль</p>
 			<input type="password" bind:value={confirmPassword} placeholder="password" />
 			{#if error}
 				<p class="error">{error}</p>

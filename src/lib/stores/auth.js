@@ -45,7 +45,7 @@ function createAuthStore() {
 				// After registration, log the user in
 				return this.login(email, password);
 			} catch (error) {
-				throw new Error('Registration failed');
+				throw new Error('Такой email уже используется');
 			}
 		},
 

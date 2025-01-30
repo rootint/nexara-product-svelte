@@ -52,6 +52,16 @@
 		isKeyShown = !isKeyShown;
 	}
 
+	async function handleCreateApiKey() {
+		try {
+			await dashboardStore.createApiKey();
+			await dashboardStore.loadDashboardData();
+		} catch (error) {
+			// Handle UI-specific error presentation
+			console.error('Failed to create API key:', error);
+		}
+	}
+
 	async function handleCopyKey() {
 		if ($dashboardStore.apiKey) {
 			try {
@@ -105,6 +115,7 @@
 	}
 </script>
 
+<!-- TODO: new account api button creation -->
 {#if !$authStore.isAuthenticated}
 	<div class="main-container">
 		<div class="top-bar">
@@ -126,74 +137,83 @@
 						{($dashboardStore.personalPrice * 60).toLocaleString('ru-RU')} ₽ / мин
 					</div>
 				</div>
-				<h2 class="money-left">
-					{$dashboardStore.credits.toLocaleString('ru-RU', {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2
-					})} ₽
-				</h2>
-				<p class="subtitle">
-					{($dashboardStore.credits / ($dashboardStore.personalPrice * 60)).toFixed(0)} мин транскрибации
-				</p>
-				<form on:submit|preventDefault={handleGetCredits} class="buy-form">
-					<input
-						type="number"
-						bind:value={inputCredits}
-						placeholder="10000 ₽"
-						min="0"
-						step="0.01"
-					/>
-					<button type="submit" class="buy-btn {isButtonDisabled ? 'disabled' : ''}">
-						<p class="btn-text">Пополнить</p>
-					</button>
-				</form>
-				<p class="form-subtitle">{subtitleText}</p>
-				<div class="fast-buttons-row">
-					<button
-						class="fast-button"
-						on:click={() => {
-							inputCredits = 1000 * $dashboardStore.personalPrice * 60;
-						}}>1000 мин</button
-					>
-					<button
-						class="fast-button"
-						on:click={() => {
-							inputCredits = 5000 * $dashboardStore.personalPrice * 60;
-						}}>5000 мин</button
-					>
-					<button
-						class="fast-button"
-						on:click={() => {
-							inputCredits = 10000 * $dashboardStore.personalPrice * 60;
-						}}>10000 мин</button
-					>
-				</div>
+				{#if $dashboardStore.apiKey}
+					<h2 class="money-left">
+						{$dashboardStore.credits.toLocaleString('ru-RU', {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						})} ₽
+					</h2>
+					<p class="subtitle">
+						{($dashboardStore.credits / ($dashboardStore.personalPrice * 60)).toFixed(0)} мин транскрибации
+					</p>
+					<form on:submit|preventDefault={handleGetCredits} class="buy-form">
+						<input
+							type="number"
+							bind:value={inputCredits}
+							placeholder="10000 ₽"
+							min="0"
+							step="0.01"
+						/>
+						<button type="submit" class="buy-btn {isButtonDisabled ? 'disabled' : ''}">
+							<p class="btn-text">Пополнить</p>
+						</button>
+					</form>
+					<p class="form-subtitle">{subtitleText}</p>
+					<div class="fast-buttons-row">
+						<button
+							class="fast-button"
+							on:click={() => {
+								inputCredits = 1000 * $dashboardStore.personalPrice * 60;
+							}}>1000 мин</button
+						>
+						<button
+							class="fast-button"
+							on:click={() => {
+								inputCredits = 5000 * $dashboardStore.personalPrice * 60;
+							}}>5000 мин</button
+						>
+						<button
+							class="fast-button"
+							on:click={() => {
+								inputCredits = 10000 * $dashboardStore.personalPrice * 60;
+							}}>10000 мин</button
+						>
+					</div>
+				{/if}
 			</div>
 			<div class="card">
 				<div class="top-row">
 					<p class="card-title">API ключ</p>
 				</div>
-				<div class="key-row">
-					<div class="key">
-						<p class="monospace">
-							{#if isKeyShown}
-								{$dashboardStore.apiKey}
+				{#if $dashboardStore.apiKey}
+					<div class="key-row">
+						<div class="key">
+							<p class="monospace">
+								{#if isKeyShown}
+									{$dashboardStore.apiKey}
+								{:else}
+									nx-xxxxxxxxxxxxxxxxxxxxxxxx
+								{/if}
+							</p>
+						</div>
+						<button class="key-btn" on:click={toggleShowKey}>
+							<Eye></Eye>
+						</button>
+						<button class="key-btn" on:click={handleCopyKey}>
+							{#if isKeyCopied}
+								<Check></Check>
 							{:else}
-								nx-xxxxxxxxxxxxxxxxxxxxxxxx
+								<Copy></Copy>
 							{/if}
-						</p>
+						</button>
 					</div>
-					<button class="key-btn" on:click={toggleShowKey}>
-						<Eye></Eye>
+				{:else}
+					<div style="height: 24px;"></div>
+					<button class="buy-btn" on:click={handleCreateApiKey}>
+						<p class="btn-text">Создать ключ</p>
 					</button>
-					<button class="key-btn" on:click={handleCopyKey}>
-						{#if isKeyCopied}
-							<Check></Check>
-						{:else}
-							<Copy></Copy>
-						{/if}
-					</button>
-				</div>
+				{/if}
 			</div>
 		</div>
 	</div>

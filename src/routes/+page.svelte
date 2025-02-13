@@ -17,11 +17,12 @@
 	onMount(async () => {
 		payments = new cp.CloudPayments({
 			language: 'ru-RU',
+			email: '',
 			applePaySupport: true,
 			googlePaySupport: true,
 			yandexPaySupport: true,
 			tinkoffPaySupport: true,
-			tinkoffInstallmentSupport: true,
+			mirPaySupport: true,
 			sbpSupport: true
 		});
 		authStore.initialize();

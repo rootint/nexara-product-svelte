@@ -28,14 +28,7 @@
 
 	onMount(async () => {
 		payments = new cp.CloudPayments({
-			language: 'ru-RU',
-			email: '',
-			applePaySupport: false,
-			googlePaySupport: false,
-			yandexPaySupport: false,
-			tinkoffPaySupport: false,
-			tinkoffInstallmentSupport: false
-			// sbpSupport: true
+			language: 'ru-RU'
 		});
 		authStore.initialize();
 		if ($authStore.isAuthenticated) {

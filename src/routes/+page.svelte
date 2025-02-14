@@ -67,31 +67,31 @@
 				// 	.catch(function (error) {
 				// 		console.log('error', error);
 				// 	});
-				payments = new cp.CloudPayments();
-				payments.pay(
-					'charge',
-					{
-						publicId: 'pk_a0f7faa18429d6e52516616de8747',
-						description: 'Пополнение баланса на nexara.ru',
-						// amount: Number(inputCredits),
-						amount: 100,
-						invoiceId: crypto.randomUUID(),
-						accountId: $dashboardStore.userId,
-						currency: 'RUB',
-						skin: 'modern',
-						data: {
-							userId: $dashboardStore.userId
-						}
-					},
-					{
-						onSuccess: function (options) {},
-						onFail: function (reason, options) {},
-						onComplete: async function (paymentResult, options) {
-							console.log('complete');
-							await dashboardStore.loadDashboardData();
-						}
-					}
-				);
+				// payments = new cp.CloudPayments();
+				// payments.pay(
+				// 	'charge',
+				// 	{
+				// 		publicId: 'pk_a0f7faa18429d6e52516616de8747',
+				// 		description: 'Пополнение баланса на nexara.ru',
+				// 		// amount: Number(inputCredits),
+				// 		amount: 100,
+				// 		invoiceId: crypto.randomUUID(),
+				// 		accountId: $dashboardStore.userId,
+				// 		currency: 'RUB',
+				// 		skin: 'modern',
+				// 		data: {
+				// 			userId: $dashboardStore.userId
+				// 		}
+				// 	},
+				// 	{
+				// 		onSuccess: function (options) {},
+				// 		onFail: function (reason, options) {},
+				// 		onComplete: async function (paymentResult, options) {
+				// 			console.log('complete');
+				// 			await dashboardStore.loadDashboardData();
+				// 		}
+				// 	}
+				// );
 			} else {
 				throw Error('Минимальная сумма пополнения - 200 рублей');
 			}

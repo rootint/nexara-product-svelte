@@ -15,16 +15,6 @@
 	let copied = false;
 
 	onMount(async () => {
-		payments = new cp.CloudPayments({
-			language: 'ru-RU',
-			email: '',
-			applePaySupport: true,
-			googlePaySupport: true,
-			yandexPaySupport: true,
-			tinkoffPaySupport: true,
-			mirPaySupport: true,
-			sbpSupport: true
-		});
 		authStore.initialize();
 		if ($authStore.isAuthenticated) {
 			let loaded = await dashboardStore.loadDashboardData();
@@ -48,12 +38,44 @@
 	async function handleGetCredits() {
 		try {
 			if (inputCredits >= 200) {
+				// var payments = new cp.CloudPayments({
+				// 	language: 'ru-RU',
+				// 	email: '',
+				// 	applePaySupport: true,
+				// 	googlePaySupport: true,
+				// 	yandexPaySupport: true,
+				// 	tinkoffPaySupport: true,
+				// 	tinkoffInstallmentSupport: true,
+				// 	sbpSupport: true
+				// });
+
+				// payments
+				// 	.pay('charge', {
+				// 		publicId: 'pk_a0f7faa18429d6e52516616de8747',
+				// 		description: 'Тестовая оплата',
+				// 		amount: 100,
+				// 		currency: 'RUB',
+				// 		invoiceId: '123',
+				// 		accountId: '123',
+				// 		email: '',
+				// 		skin: 'modern',
+				// 		requireEmail: false
+				// 	})
+				// 	.then(function (widgetResult) {
+				// 		console.log('result', widgetResult);
+				// 	})
+				// 	.catch(function (error) {
+				// 		console.log('error', error);
+				// 	});
+				payments = new cp.CloudPayments();
 				payments.pay(
-					'auth',
+					'charge',
 					{
 						publicId: 'pk_a0f7faa18429d6e52516616de8747',
 						description: 'Пополнение баланса на nexara.ru',
 						amount: Number(inputCredits),
+						invoiceId: crypto.randomUUID(),
+						accountId: $dashboardStore.userId,
 						currency: 'RUB',
 						skin: 'modern',
 						data: {

@@ -34,10 +34,10 @@
 </script>
 
 <div class="parallax-container">
-	<img id="green" src={green} width="794" style="transform: rotateZ({scrollPosition / 90}deg)" />
-	<img id="red" src={red} width="547" style="transform: rotateZ({scrollPosition / 90}deg)" />
-	<img id="orange" src={orange} width="685" style="transform: rotateZ({-scrollPosition / 90}deg)" />
-	<img id="purple" src={purple} width="794" style="transform: rotateZ({scrollPosition / 90}deg)" />
+	<img id="green" alt="green background blob" src={green} width="794" style="transform: rotateZ({scrollPosition / 90}deg)" />
+	<img id="red" alt="red background blob" src={red} width="547" style="transform: rotateZ({scrollPosition / 90}deg)" />
+	<img id="orange" alt="orange background blob" src={orange} width="685" style="transform: rotateZ({-scrollPosition / 90}deg)" />
+	<img id="purple" alt="purple background blob" src={purple} width="794" style="transform: rotateZ({scrollPosition / 90}deg)" />
 </div>
 
 <style>

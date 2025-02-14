@@ -73,7 +73,8 @@
 					{
 						publicId: 'pk_a0f7faa18429d6e52516616de8747',
 						description: 'Пополнение баланса на nexara.ru',
-						amount: Number(inputCredits),
+						// amount: Number(inputCredits),
+						amount: 100,
 						invoiceId: crypto.randomUUID(),
 						accountId: $dashboardStore.userId,
 						currency: 'RUB',

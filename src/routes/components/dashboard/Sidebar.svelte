@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LayoutPanelLeft, LogOut } from 'lucide-svelte';
+	import { BookOpen, LayoutPanelLeft, LogOut, Rss } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 
 	async function handleLogout() {
@@ -24,6 +24,10 @@
 		</div>
 	</div>
 	<div class="bottom-sections">
+        <a href="https://t.me/nexara_news" class="section-link-bottom">
+			<Rss></Rss>
+			<p>Блог</p>
+		</a>
 		<a href="https://docs.nexara.ru/docs/quick-start" class="section-link-bottom">
 			<BookOpen></BookOpen>
 			<p>Документация</p>

@@ -45,6 +45,31 @@ function createDashboardStore() {
 			}
 		},
 
+		async changeApiKey() {
+			update((state) => ({ ...state, isLoading: true, error: null }));
+
+			try {
+				const result = await api.makeRequest('/change_key', {
+					method: 'POST'
+				});
+
+				update((state) => ({
+					...state,
+					apiKeys: result,
+					isLoading: false
+				}));
+
+				return result;
+			} catch (error) {
+				update((state) => ({
+					...state,
+					error: error.message,
+					isLoading: false
+				}));
+				throw error;
+			}
+		},
+
 		async loadDashboardData() {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 

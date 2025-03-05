@@ -3,7 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import { goto } from '$app/navigation';
-	import { Check, Copy, Eye } from 'lucide-svelte';
+	import { Check, Copy, Eye, RefreshCcw } from 'lucide-svelte';
 
 	let isKeyShown = false;
 	let isKeyCopied = false;
@@ -65,6 +65,32 @@
 			} catch (err) {
 				console.error('Failed to copy API Key:', err);
 			}
+		}
+	}
+
+	async function handleChangeKey() {
+		// Use the browser's built-in confirm() function for a simple OK/Cancel dialog.
+		const confirmChange = confirm(
+			'Вы уверены, что хотите изменить API-ключ? Это действие необратимо.'
+		); // Russian prompt
+
+		if (confirmChange) {
+			// User clicked "OK"
+			if ($dashboardStore.apiKey) {
+				// This check is likely redundant now, but keeps original logic
+				try {
+					await dashboardStore.changeApiKey();
+					await dashboardStore.loadDashboardData();
+				} catch (error) {
+					// Handle UI-specific error presentation
+					console.error('Failed to change API key:', error);
+					// Consider showing a more user-friendly error message in the UI.
+					alert('Ошибка при смене API-ключа. Пожалуйста, попробуйте еще раз.'); // Russian error alert.
+				}
+			}
+		} else {
+			// User clicked "Cancel" - do nothing
+			console.log('API key change cancelled.');
 		}
 	}
 
@@ -199,6 +225,9 @@
 							{:else}
 								<Copy></Copy>
 							{/if}
+						</button>
+						<button class="key-btn" on:click={handleChangeKey}>
+							<RefreshCcw></RefreshCcw>
 						</button>
 					</div>
 				{:else}

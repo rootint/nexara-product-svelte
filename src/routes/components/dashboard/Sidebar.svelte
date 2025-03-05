@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LayoutPanelLeft, LogOut, Rss } from 'lucide-svelte';
+	import { BookOpen, LayoutPanelLeft, LogOut, MessageCircleQuestion, Rss } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 
 	async function handleLogout() {
@@ -31,6 +31,10 @@
 		<a href="https://docs.nexara.ru/docs/quick-start" class="section-link-bottom">
 			<BookOpen></BookOpen>
 			<p>Документация</p>
+		</a>
+        <a href="https://t.me/RND_RandoM" class="section-link-bottom">
+			<MessageCircleQuestion></MessageCircleQuestion>
+			<p>Поддержка</p>
 		</a>
 		<button on:click={handleLogout} class="logout-btn">
 			<LogOut></LogOut>

@@ -116,6 +116,7 @@
 <section class="dashboard">
 	<Sidebar></Sidebar>
 	<MainDashboardSection></MainDashboardSection>
+	<!-- <div style="height: 1200px"></div> -->
 </section>
 
 <style>
@@ -124,7 +125,7 @@
 		padding: 0;
 		display: flex;
 		flex-direction: row;
-		height: 100vh;
-		width: 100wv;
+		min-height: 100vh;
+		width: 100%;
 	}
 </style>

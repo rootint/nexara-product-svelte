@@ -12,7 +12,7 @@
 	}
 </script>
 
-<div class="sidebar">
+<aside class="sidebar">
 	<div class="logo-row">
 		<img src={icon} width="21" alt="logo" />
 		<p>Nexara</p>
@@ -24,7 +24,7 @@
 		</div>
 	</div>
 	<div class="bottom-sections">
-        <a href="https://t.me/nexara_news" class="section-link-bottom">
+		<a href="https://t.me/nexara_news" class="section-link-bottom">
 			<Rss></Rss>
 			<p>Блог</p>
 		</a>
@@ -32,7 +32,7 @@
 			<BookOpen></BookOpen>
 			<p>Документация</p>
 		</a>
-        <a href="https://t.me/RND_RandoM" class="section-link-bottom">
+		<a href="https://t.me/RND_RandoM" class="section-link-bottom">
 			<MessageCircleQuestion></MessageCircleQuestion>
 			<p>Поддержка</p>
 		</a>
@@ -41,7 +41,7 @@
 			<p>Выйти</p>
 		</button>
 	</div>
-</div>
+</aside>
 
 <style>
 	.logout-btn {
@@ -110,12 +110,16 @@
 		backdrop-filter: blur(24px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		height: 100%;
+		height: 100vh;
 		width: 254px;
 		display: grid;
+		position: sticky;
+		top: 0; /* Stick to the top of the viewport */
+        overflow-y: auto;
+        max-height: 100vh;
 		/* flex-direction: column; */
 		grid-template-rows: auto 1fr auto;
 		border-right: 1px solid rgba(255, 255, 255, 0.11);
-        flex-shrink: 0;
+		flex-shrink: 0;
 	}
 </style>

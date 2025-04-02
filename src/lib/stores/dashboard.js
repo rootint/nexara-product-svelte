@@ -119,6 +119,38 @@ function createDashboardStore() {
 					isLoading: false
 				}));
 			}
+		},
+		async transcribeFile(file, apiKey) {
+			// Get the current API key directly from the store's value
+
+			if (!apiKey) {
+				throw new Error('API ключ не найден. Невозможно выполнить транскрибацию.');
+			}
+			if (!file) {
+				throw new Error('Файл для транскрибации не предоставлен.');
+			}
+
+			const formData = new FormData();
+			formData.append('model', 'whisper-1');
+			formData.append('file', file, file.name); // Ensure filename is included
+			formData.append('response_format', 'srt');
+
+			// Note: The ApiClient base URL is 'https://api.nexara.ru'
+			// The required endpoint is '/api/v1/audio/transcriptions'
+			// We need to call the correct endpoint path relative to the base URL.
+			const endpoint = '/api/v1/audio/transcriptions';
+
+			try {
+				// Use the new makeFormDataRequest method
+				const result = await api.makeFormDataRequest(endpoint, apiKey, formData);
+				// Optionally, refresh user credits/data after transcription if credits are deducted server-side immediately
+				// await this.loadDashboardData(); // Uncomment if needed
+				return result; // Return the transcription result
+			} catch (error) {
+				console.error('Transcription Store Error:', error);
+				// Re-throw the error so the component can catch it and display a message
+				throw error;
+			}
 		}
 	};
 }

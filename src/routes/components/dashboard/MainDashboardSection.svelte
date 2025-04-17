@@ -16,6 +16,7 @@
 	} from 'lucide-svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { parseSrt, formatDurationHMS } from '$lib/utils/subtitles';
+	import TranscriptionCard from './cards/TranscriptionCard.svelte';
 
 	let isKeyShown = false;
 	let isKeyCopied = false;
@@ -395,138 +396,7 @@
 				{/if}
 			</div>
 		</div>
-		<div class="transcription-card">
-			<div class="top-row">
-				<p class="card-title">Транскрибация файла</p>
-			</div>
-
-			{#if $dashboardStore.apiKey}
-				<!-- Show only if API Key is available -->
-
-				<!-- === State: Idle (No file, no result, not transcribing) === -->
-				{#if !selectedFile && !transcriptionResult && !isTranscribing && !transcriptionError}
-					<input
-						type="file"
-						bind:this={fileInputRef}
-						on:change={handleFileSelect}
-						accept={acceptedExtensions}
-						style="display: none;"
-					/>
-					<div
-						class="drop-zone {isDragging ? 'dragging' : ''}"
-						on:dragover={handleDragOver}
-						on:dragleave={handleDragLeave}
-						on:drop={handleDrop}
-						on:click={triggerFileInput}
-						role="button"
-						tabindex="0"
-						on:keypress={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') triggerFileInput();
-						}}
-						aria-label="Зона для загрузки файла транскрибации"
-					>
-						<UploadCloud size={48} stroke-width={1} />
-						<p>Перетащите аудио/видео файл сюда</p>
-						<p class="drop-zone-or">или</p>
-						<button type="button" class="select-file-btn" tabindex="-1">Выберите файл</button>
-						<p class="drop-zone-types">Поддерживаются: {acceptedExtensions}</p>
-					</div>
-
-					<!-- === State: File Selected, Ready to Transcribe === -->
-				{:else if selectedFile && !isTranscribing && !transcriptionResult && !transcriptionError}
-					<div class="file-selected-info">
-						<div class="file-details">
-							<FileIcon size={32} />
-							<div class="file-meta">
-								<p class="file-name" title={selectedFile.name}>{selectedFile.name}</p>
-								<p class="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-							</div>
-						</div>
-						<!-- Transcribe Button -->
-						<button class="buy-btn transcribe-btn" on:click={transcribe_file}>
-							Транскрибировать
-						</button>
-						<!-- Cancel Selection Button -->
-						<button
-							class="clear-file-btn"
-							on:click={clearTranscriptionState}
-							title="Отменить выбор"
-						>
-							<X size="18" />
-						</button>
-					</div>
-
-					<!-- === State: Transcribing === -->
-				{:else if isTranscribing}
-					<div class="transcribing-indicator">
-						<Loader2 class="spin-icon" size={48} />
-						<p>Идет транскрибация...</p>
-						{#if selectedFile}
-							<p class="file-name-progress" title={selectedFile.name}>{selectedFile.name}</p>
-						{/if}
-						<p class="transcribing-note">
-							Это может занять некоторое время в зависимости от размера файла.
-						</p>
-					</div>
-
-					<!-- === State: Transcription Error === -->
-				{:else if transcriptionError}
-					<div class="transcription-error">
-						<AlertTriangle size={40} color="#ff6b6b" />
-						<h4>Ошибка транскрибации</h4>
-						<p class="error-message">{transcriptionError}</p>
-						<!-- Button to try again or clear -->
-						<button class="select-file-btn" on:click={clearTranscriptionState}
-							>Попробовать другой файл</button
-						>
-					</div>
-
-					<!-- === State: Transcription Success === -->
-				{:else if transcriptionResult && parsedSubtitles && !isTranscribing && !transcriptionError}
-					<div class="transcription-results">
-						<!-- Subtitle List -->
-						<div class="subtitle-list">
-							{#each parsedSubtitles as subtitle (subtitle.id)}
-								<div class="subtitle-card">
-									<div class="subtitle-timestamp">
-										<span class="time">{formatDurationHMS(subtitle.startTime)}</span>
-										<span class="separator"> → </span>
-										<span class="time">{formatDurationHMS(subtitle.endTime)}</span>
-									</div>
-									<p class="subtitle-text">{subtitle.text}</p>
-								</div>
-							{/each}
-						</div>
-
-						<button class="buy-btn transcribe-btn" on:click={clearTranscriptionState}>
-							Транскрибировать другой файл
-						</button>
-					</div>
-
-					<!-- Optional: Handle case where API returned result but parsing failed -->
-				{:else if transcriptionResult && !parsedSubtitles && !isTranscribing && !transcriptionError}
-					<div class="transcription-error">
-						<AlertTriangle size={40} color="#ffcc00" />
-						<!-- Warning color -->
-						<h4>Транскрибация завершена, но...</h4>
-						<p class="error-message">
-							Не удалось корректно разобрать полученный текст субтитров (SRT).
-						</p>
-						<textarea class="result-text" readonly bind:value={transcriptionResult.text}></textarea>
-						<button class="select-file-btn try-again-btn" on:click={clearTranscriptionState}>
-							Попробовать другой файл
-						</button>
-					</div>
-				{/if}
-			{:else}
-				<!-- Message if API Key is missing -->
-				<div class="api-key-required">
-					<AlertTriangle size={32} color="#fff" />
-					<p>Для транскрибации файла необходим API ключ.</p>
-					<p>Создайте ключ в карточке API ключ выше.</p>
-				</div>
-			{/if}
-		</div>
+		<TranscriptionCard></TranscriptionCard>
 	</div>
 {/if}
 

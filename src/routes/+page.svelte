@@ -18,6 +18,7 @@
 		authStore.initialize();
 		if ($authStore.isAuthenticated) {
 			let loaded = await dashboardStore.loadDashboardData();
+			console.log('what', loaded);
 			if (!loaded) {
 				authStore.logout();
 			}

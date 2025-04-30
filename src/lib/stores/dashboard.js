@@ -10,23 +10,32 @@ function createDashboardStore() {
 		personalPrice: null,
 		credits: 0,
 		isLoading: false,
+		location: null,
 		error: null
 	});
 
 	// const api = new ApiClient('https://api-test.nexara.ru');
-	const api = new ApiClient('https://api.nexara.ru');
-	// const api = new ApiClient('http://localhost:8000');
+	// const api = new ApiClient('https://api.nexara.ru');
+	const api = new ApiClient('http://localhost:8000');
 
 	return {
 		subscribe,
 
-		async createApiKey() {
+		async createApiKey(location) {
 			update((state) => ({ ...state, isLoading: true, error: null }));
+			const formData = new FormData();
 
+			// 2. Append your data field(s)
+			formData.append('location', location);
 			try {
-				const result = await api.makeRequest('/create_key', {
-					method: 'POST'
-				});
+				const result = await api.makeRequest(
+					'/create_key',
+					{
+						method: 'POST'
+					},
+					null,
+					formData
+				);
 
 				update((state) => ({
 					...state,
@@ -77,18 +86,20 @@ function createDashboardStore() {
 				const result = await api.makeRequest('/view_account', {
 					method: 'GET'
 				});
-
+				console.log('result', result);
 				set({
 					personalPrice: result.rate,
 					email: result.email,
 					apiKey: result.api_key,
 					credits: result.credits,
 					userId: result.user_id,
+					location: result.location,
 					isLoading: false,
 					error: null
 				});
 				return true;
 			} catch (error) {
+				console.log(error);
 				update((state) => ({
 					...state,
 					error: error.message,
@@ -134,7 +145,7 @@ function createDashboardStore() {
 			formData.append('model', 'whisper-1');
 			formData.append('file', file, file.name); // Ensure filename is included
 			formData.append('response_format', 'srt');
-      formData.append('is_dashboard', true);
+			formData.append('is_dashboard', true);
 
 			// Note: The ApiClient base URL is 'https://api.nexara.ru'
 			// The required endpoint is '/api/v1/audio/transcriptions'

@@ -18,8 +18,8 @@
 		}
 	}
 
-    // TODO: redirect to dashboard if the user is already logged on, 
-    // but also check for token expiration
+	// TODO: redirect to dashboard if the user is already logged on,
+	// but also check for token expiration
 	onMount(() => {
 		if ($authStore.isAuthenticated) {
 			goto('/');

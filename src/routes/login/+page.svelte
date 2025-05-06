@@ -4,6 +4,8 @@
 	import Header from '../components/Header.svelte';
 	import { goto } from '$app/navigation';
 	import { on } from 'svelte/events';
+	import * as m from '$lib/paraglide/messages.js';
+	import { languageTag } from '$lib/paraglide/runtime.js';
 
 	let email = '';
 	let password = '';
@@ -22,32 +24,38 @@
 	// but also check for token expiration
 	onMount(() => {
 		if ($authStore.isAuthenticated) {
-			goto('/');
+			if (languageTag === 'ru') {
+				goto('/');
+			} else {
+				goto('/en');
+			}
 		}
 	});
 </script>
 
 <svelte:head>
-	<title>Войти в Nexara</title>
+	<title>Nexara Dashboard</title>
 </svelte:head>
 
 <Header></Header>
 
 <section class="login">
 	<div class="card">
-		<h2>Войти</h2>
+		<h2>{m.auth_login_title()}</h2>
 		<form on:submit|preventDefault={handleSubmit}>
 			<p>Email</p>
-			<input type="email" id="email" bind:value={email} placeholder="test@mail.ru" />
-			<p>Пароль</p>
+			<input type="email" id="email" bind:value={email} placeholder={m.auth_email_placeholder()} />
+			<p>{m.auth_password_label()}</p>
 			<input type="password" id="password" bind:value={password} placeholder="password" />
 			{#if error}
 				<p class="error">{error}</p>
 			{/if}
-			<button type="submit"><p class="btn-text">Войти</p></button>
+			<button type="submit"><p class="btn-text">{m.auth_login_title()}</p></button>
 			<!-- <MainButton text="Войти" ></MainButton> -->
 		</form>
-		<p class="register-text">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+		<p class="register-text">
+			{m.auth_no_account()} <a href="/register">{m.auth_register_title()}</a>
+		</p>
 	</div>
 </section>
 

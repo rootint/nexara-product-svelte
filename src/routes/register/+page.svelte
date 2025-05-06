@@ -2,6 +2,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import Header from '../components/Header.svelte';
+	import * as m from '$lib/paraglide/messages.js';
 	// Optional: Import goto for navigation after successful registration
 	// import { goto } from '$app/navigation';
 
@@ -54,37 +55,37 @@
 </script>
 
 <svelte:head>
-	<title>Зарегистрироваться в Nexara</title>
+	<title>Nexara Dashboard</title>
 </svelte:head>
 
 <Header></Header>
 
 <section class="login">
 	<div class="card">
-		<h2>Зарегистрироваться</h2>
+		<h2>{m.auth_register_title()}</h2>
 		<form on:submit|preventDefault={handleSubmit}>
 			<p>Email</p>
-			<input type="email" bind:value={email} placeholder="test@mail.ru" required />
-			<p>Пароль</p>
+			<input type="email" bind:value={email} placeholder={m.auth_email_placeholder()} required />
+			<p>{m.auth_password_label()}</p>
 			<input type="password" bind:value={password} placeholder="password" required />
-			<p>Подтвердите пароль</p>
+			<p>{m.auth_repeat_password_label()}</p>
 			<input type="password" bind:value={confirmPassword} placeholder="password" required />
 
 			<!-- Location Dropdown -->
-			<p>Регион</p>
+			<p>{m.auth_location_label()}</p>
 			<select bind:value={location} required>
-				<option value="" disabled selected>-- Выберите регион --</option>
-				<option value="ru">Россия</option>
-				<option value="row">Другая страна</option>
+				<option value="" disabled selected>-- {m.auth_pick_dropdown()} --</option>
+				<option value="row">{m.auth_row_dropdown()}</option>
+				<option value="ru">{m.auth_russia_dropdown()}</option>
 			</select>
 			<!-- End Location Dropdown -->
 
 			{#if error}
 				<p class="error">{error}</p>
 			{/if}
-			<button type="submit"><p class="btn-text">Зарегистрироваться</p></button>
+			<button type="submit"><p class="btn-text">{m.auth_register_title()}</p></button>
 		</form>
-		<p class="register-text">Уже есть аккаунт? <a href="/login">Войти</a></p>
+		<p class="register-text">{m.auth_have_account()} <a href="/login">{m.auth_login_title()}</a></p>
 	</div>
 </section>
 

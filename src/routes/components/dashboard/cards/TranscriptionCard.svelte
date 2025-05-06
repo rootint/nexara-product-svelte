@@ -10,6 +10,7 @@
 		Download, // Import Download icon
 		Copy // Import Copy icon
 	} from 'lucide-svelte';
+	import * as m from '$lib/paraglide/messages.js';
 
 	let selectedFile = null;
 	let isDragging = false;
@@ -48,7 +49,7 @@
 	let transcriptionError = null;
 	// Removed srtResult variable as it's part of transcriptionResult
 	let parsedSubtitles = null; // Array of { id, startTime, endTime, text }
-	let copyButtonText = 'Скопировать';
+	let copyButtonText = m.db_transcribe_copy();
 
 	// --- File Handling Functions ---
 
@@ -77,7 +78,7 @@
 	function processFiles(files) {
 		if (files.length === 0) return;
 		if (files.length > 1) {
-			alert('Пожалуйста, выберите или перетащите только один файл.');
+			alert(m.alert_select_single_file());
 			return;
 		}
 		const file = files[0];
@@ -85,7 +86,7 @@
 		transcriptionResult = null;
 		transcriptionError = null;
 		parsedSubtitles = null;
-		copyButtonText = 'Скопировать'; // Reset copy button text
+		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
 		console.log('Selected file:', selectedFile);
 	}
 
@@ -101,7 +102,7 @@
 		transcriptionResult = null;
 		transcriptionError = null;
 		parsedSubtitles = null;
-		copyButtonText = 'Скопировать'; // Reset copy button text
+		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
 		if (fileInputRef) fileInputRef.value = null;
 	}
 
@@ -114,7 +115,7 @@
 		transcriptionResult = null;
 		transcriptionError = null;
 		parsedSubtitles = null;
-		copyButtonText = 'Скопировать';
+		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
 
 		try {
 			const result = await dashboardStore.transcribeFile(selectedFile, $dashboardStore.apiKey);
@@ -129,7 +130,7 @@
 				typeof result.verbose_json?.text !== 'string'
 			) {
 				console.error('Unexpected transcription result structure:', result);
-				throw new Error('Получен некорректный формат результата транскрибации от сервера.');
+				throw new Error(m.error_invalid_transcription_format());
 			}
 
 			transcriptionResult = result; // Store the raw result
@@ -155,7 +156,7 @@
 			await dashboardStore.loadDashboardData(); // Reload dashboard data (e.g., credits update)
 		} catch (error) {
 			console.error('--- Transcription Failed --- ', error);
-			transcriptionError = error.message || 'Произошла неизвестная ошибка при транскрибации.';
+			transcriptionError = error.message || m.error_unknown_transcription();
 			selectedFile = null; // Clear file on error too
 		} finally {
 			isTranscribing = false;
@@ -167,7 +168,7 @@
 	function downloadFile(content, filename, mimeType = 'text/plain;charset=utf-8') {
 		if (!content) {
 			console.error('No content provided for download.');
-			alert('Нет данных для скачивания.');
+			alert(m.alert_no_download_data());
 			return;
 		}
 		try {
@@ -182,33 +183,31 @@
 			URL.revokeObjectURL(url);
 		} catch (err) {
 			console.error('Download failed:', err);
-			alert(`Не удалось начать скачивание файла ${filename}.`);
+			alert(m.alert_download_failed({ filename }));
 		}
 	}
 
 	async function copyToClipboard(text) {
 		if (!text) {
 			console.error('No text provided for copying.');
-			alert('Нет текста для копирования.');
+			alert(m.alert_no_copy_data());
 			return;
 		}
 		if (!navigator.clipboard) {
-			alert(
-				'Функция копирования не поддерживается или недоступна в вашем браузере (требуется HTTPS).'
-			);
+			alert(m.alert_copy_not_supported());
 			return;
 		}
 		try {
 			await navigator.clipboard.writeText(text);
-			copyButtonText = 'Скопировано!';
+			copyButtonText = m.db_transcribe_copied();
 			setTimeout(() => {
-				copyButtonText = 'Скопировать';
+				copyButtonText = m.db_transcribe_copy();
 			}, 2000); // Reset after 2 seconds
 		} catch (err) {
 			console.error('Failed to copy text: ', err);
-			copyButtonText = 'Ошибка копирования';
+			copyButtonText = m.db_transcribe_copy_error();
 			setTimeout(() => {
-				copyButtonText = 'Скопировать';
+				copyButtonText = m.db_transcribe_copy();
 			}, 2000);
 		}
 	}
@@ -250,13 +249,13 @@
 
 <div class="transcription-card">
 	<div class="top-row">
-		<p class="card-title">Транскрибация файла</p>
+		<p class="card-title">{m.db_transcribe_title()}</p>
 		{#if transcriptionResult && !isTranscribing}
 			<!-- Action Buttons - Show only when transcriptionResult exists -->
 			<div class="action-buttons">
 				<button
 					class="action-btn"
-					title="Скачать SRT"
+					title={m.db_transcribe_download_srt_title()}
 					on:click={handleDownloadSrt}
 					disabled={!transcriptionResult?.srt}
 				>
@@ -264,7 +263,7 @@
 				</button>
 				<button
 					class="action-btn"
-					title="Скачать VTT"
+					title={m.db_transcribe_download_vtt_title()}
 					on:click={handleDownloadVtt}
 					disabled={!transcriptionResult?.vtt}
 				>
@@ -272,7 +271,7 @@
 				</button>
 				<button
 					class="action-btn"
-					title="Скачать текст"
+					title={m.db_transcribe_download_txt_title()}
 					on:click={handleDownloadTxt}
 					disabled={!transcriptionResult?.verbose_json?.text}
 				>
@@ -280,9 +279,10 @@
 				</button>
 				<button
 					class="action-btn"
-					title="Копировать текст"
+					title={m.db_transcribe_copy_title()}
 					on:click={handleCopyText}
-					disabled={!transcriptionResult?.verbose_json?.text || copyButtonText !== 'Скопировать'}
+					disabled={!transcriptionResult?.verbose_json?.text ||
+						copyButtonText !== m.db_transcribe_copy()}
 				>
 					<Copy size="16" />
 					{copyButtonText}
@@ -295,8 +295,8 @@
 		<!-- Message if API Key is missing -->
 		<div class="api-key-required">
 			<AlertTriangle size={32} color="#aaa" />
-			<p>Для транскрибации файла необходим API ключ.</p>
-			<p>Создайте или проверьте ключ в карточке "API ключ" выше.</p>
+			<p>{m.db_transcribe_api_key_needed()}</p>
+			<p>{m.db_transcribe_check_api_key()}</p>
 		</div>
 	{:else}
 		<!-- Main Content: Show based on state -->
@@ -322,13 +322,18 @@
 					on:keypress={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') triggerFileInput();
 					}}
-					aria-label="Зона для загрузки файла транскрибации"
+					aria-label={m.db_transcribe_drop_zone_aria()}
 				>
 					<UploadCloud size={48} stroke-width={1} color="#888" />
-					<p>Перетащите аудио/видео файл сюда</p>
-					<p class="drop-zone-or">или</p>
-					<button type="button" class="select-file-btn" tabindex="-1">Выберите файл</button>
-					<p class="drop-zone-types">Поддерживаются: {acceptedExtensionsString}</p>
+					<p>{m.db_transcribe_drag_drop()}</p>
+					<p class="drop-zone-or">{m.db_transcribe_or()}</p>
+					<button type="button" class="select-file-btn" tabindex="-1"
+						>{m.db_transcribe_upload()}</button
+					>
+					<p class="drop-zone-types">
+						{m.db_transcribe_supported_formats()}
+						{acceptedExtensionsString}
+					</p>
 				</div>
 
 				<!-- State: File Selected, Ready to Transcribe -->
@@ -345,12 +350,12 @@
 						<button
 							class="clear-file-btn"
 							on:click={clearTranscriptionState}
-							title="Отменить выбор"
+							title={m.db_transcribe_cancel_selection_title()}
 						>
 							<X size="18" />
 						</button>
 						<button class="buy-btn transcribe-btn" on:click={transcribeFile}>
-							Транскрибировать
+							{m.db_transcribe_button()}
 						</button>
 					</div>
 				</div>
@@ -359,21 +364,21 @@
 			{:else if isTranscribing}
 				<div class="transcribing-indicator">
 					<Loader2 class="spin-icon" size={48} color="#ccc" />
-					<p>Идет транскрибация...</p>
+					<p>{m.db_transcribe_progress()}</p>
 					{#if selectedFile}
 						<p class="file-name-progress" title={selectedFile.name}>{selectedFile.name}</p>
 					{/if}
-					<p class="transcribing-note">Это может занять некоторое время. Не закрывайте страницу.</p>
+					<p class="transcribing-note">{m.db_transcribe_progress_note()}</p>
 				</div>
 
 				<!-- State: Transcription Error -->
 			{:else if transcriptionError}
 				<div class="transcription-error">
 					<AlertTriangle size={40} color="#ff6b6b" />
-					<h4>Ошибка транскрибации</h4>
+					<h4>{m.db_transcribe_error_title()}</h4>
 					<p class="error-message">{transcriptionError}</p>
 					<button class="select-file-btn try-again-btn" on:click={clearTranscriptionState}
-						>Выбрать другой файл</button
+						>{m.db_transcribe_try_again_button()}</button
 					>
 				</div>
 
@@ -382,7 +387,7 @@
 			{:else if transcriptionResult && !isTranscribing}
 				{#if parsedSubtitles && parsedSubtitles.length > 0}
 					<div class="transcription-results">
-						<h4>Результат транскрибации:</h4>
+						<h4>{m.db_transcribe_result()}:</h4>
 						<div class="subtitle-list">
 							{#each parsedSubtitles as subtitle (subtitle.id)}
 								<div class="subtitle-card">
@@ -396,21 +401,21 @@
 							{/each}
 						</div>
 						<button class="select-file-btn again-btn" on:click={clearTranscriptionState}>
-							Транскрибировать другой файл
+							{m.db_transcribe_another_button()}
 						</button>
 					</div>
 				{:else}
 					<!-- State: Transcription Success (but parsing failed or no subtitles found) -->
 					<div class="transcription-warning">
 						<AlertTriangle size={40} color="#ffcc00" />
-						<h4>Транскрибация завершена, но...</h4>
+						<h4>{m.db_transcribe_warning_title()}</h4>
 						<p class="warning-message">
 							{parsedSubtitles === null
-								? 'Не удалось корректно разобрать полученный текст субтитров (SRT).'
-								: 'Файл успешно обработан, но субтитры не найдены в SRT.'}
-							Вы все еще можете скачать/скопировать результаты с помощью кнопок выше.
+								? m.db_transcribe_warning_parse_failed()
+								: m.db_transcribe_warning_no_subtitles()}
+							{m.db_transcribe_warning_can_download()}
 							{transcriptionResult.verbose_json?.text
-								? 'Полный текст доступен для скачивания/копирования.'
+								? m.db_transcribe_warning_full_text_available()
 								: ''}
 						</p>
 						<!-- Optionally show raw SRT/VTT if needed for debug -->
@@ -421,10 +426,11 @@
 						<textarea
 							class="result-text"
 							readonly
-							value={transcriptionResult.verbose_json?.text || 'Полный текст недоступен.'}
+							value={transcriptionResult.verbose_json?.text ||
+								m.db_transcribe_warning_full_text_unavailable()}
 						></textarea>
 						<button class="select-file-btn try-again-btn" on:click={clearTranscriptionState}>
-							Выбрать другой файл
+							{m.db_transcribe_try_again_button()}
 						</button>
 					</div>
 				{/if}
@@ -437,13 +443,13 @@
 	/* Existing styles */
 	.transcription-card {
 		background-color: rgba(255, 255, 255, 0.015);
-		backdrop-filter: blur(24px);
+		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
 		border-radius: 12px;
 		padding: 24px;
-		margin: 32px;
-		margin-top: 0;
+		/* margin: 32px; */
+		/* margin-top: 0; */
 		display: flex;
 		flex-direction: column;
 		color: #fff;

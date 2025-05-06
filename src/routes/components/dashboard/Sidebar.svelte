@@ -1,7 +1,15 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LayoutPanelLeft, LogOut, MessageCircleQuestion, Rss } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
+	import * as m from '$lib/paraglide/messages.js';
+	import { languageTag } from '$lib/paraglide/runtime';
+	import { page } from '$app/stores';
+
+	// Regex to check for root path with optional language prefix
+	const rootPathRegex = /^(\/en|\/ru)?\/?$/;
+	// Regex to check for playground path with optional language prefix
+	const playgroundPathRegex = /^(\/en|\/ru)?\/playground\/?/;
 
 	async function handleLogout() {
 		try {
@@ -18,27 +26,50 @@
 		<p>Nexara</p>
 	</div>
 	<div class="main-sections">
-		<div class="section-button selected">
-			<LayoutPanelLeft></LayoutPanelLeft>
-			<p class="text-selected">Главная</p>
-		</div>
+		<a href="/" class="section-button" class:selected={rootPathRegex.test($page.url.pathname)}>
+			<Home />
+			<p
+				class:text-selected={rootPathRegex.test($page.url.pathname)}
+				class:text-normal={!rootPathRegex.test($page.url.pathname)}
+			>
+				{m.db_sidebar_main()}
+			</p>
+		</a>
+		<a
+			href="/playground"
+			class="section-button"
+			class:selected={playgroundPathRegex.test($page.url.pathname)}
+		>
+			<AudioLines />
+			<p
+				class:text-selected={playgroundPathRegex.test($page.url.pathname)}
+				class:text-normal={!playgroundPathRegex.test($page.url.pathname)}
+			>
+				{m.db_sidebar_playground()}
+			</p>
+		</a>
 	</div>
 	<div class="bottom-sections">
 		<a href="https://t.me/nexara_news" class="section-link-bottom">
 			<Rss></Rss>
-			<p>Блог</p>
+			<p>{m.db_sidebar_blog()}</p>
 		</a>
-		<a href="https://docs.nexara.ru/docs/quick-start" class="section-link-bottom">
+		<a
+			href={languageTag() === 'ru'
+				? 'https://docs.nexara.ru/ru/quickstart'
+				: 'https://docs.nexara.ru/en/quickstart'}
+			class="section-link-bottom"
+		>
 			<BookOpen></BookOpen>
-			<p>Документация</p>
+			<p>{m.db_sidebar_docs()}</p>
 		</a>
 		<a href="https://t.me/RND_RandoM" class="section-link-bottom">
 			<MessageCircleQuestion></MessageCircleQuestion>
-			<p>Поддержка</p>
+			<p>{m.db_sidebar_support()}</p>
 		</a>
 		<button on:click={handleLogout} class="logout-btn">
 			<LogOut></LogOut>
-			<p>Выйти</p>
+			<p>{m.db_sidebar_logout()}</p>
 		</button>
 	</div>
 </aside>
@@ -77,17 +108,30 @@
 	}
 	.selected {
 		background-color: rgba(255, 255, 255, 0.05);
-		padding: 12px;
 		border-radius: 12px;
 	}
 	.text-selected {
 		font-weight: 450;
-		margin-left: 12px;
+	}
+	.text-normal {
+		font-weight: 400;
 	}
 	.section-button {
 		display: flex;
 		align-items: center;
 		width: 100%;
+		text-decoration: none;
+		color: inherit;
+		padding: 12px;
+		border-radius: 12px;
+		margin-bottom: 16px;
+		gap: 12px;
+	}
+	.section-button p {
+		margin-left: 0;
+	}
+	.section-button:hover {
+		background-color: rgba(255, 255, 255, 0.03);
 	}
 	.main-sections {
 		display: flex;
@@ -107,7 +151,7 @@
 	.sidebar {
 		padding: 0px;
 		background-color: rgba(255, 255, 255, 0.015);
-		backdrop-filter: blur(24px);
+		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
 		height: 100vh;
@@ -115,8 +159,8 @@
 		display: grid;
 		position: sticky;
 		top: 0; /* Stick to the top of the viewport */
-        overflow-y: auto;
-        max-height: 100vh;
+		overflow-y: auto;
+		max-height: 100vh;
 		/* flex-direction: column; */
 		grid-template-rows: auto 1fr auto;
 		border-right: 1px solid rgba(255, 255, 255, 0.11);

@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime';
@@ -10,6 +10,8 @@
 	const rootPathRegex = /^(\/en|\/ru)?\/?$/;
 	// Regex to check for playground path with optional language prefix
 	const playgroundPathRegex = /^(\/en|\/ru)?\/playground\/?/;
+	// Regex to check for billing path with optional language prefix
+	const billingPathRegex = /^(\/en|\/ru)?\/billing\/?/;
 
 	async function handleLogout() {
 		try {
@@ -48,9 +50,21 @@
 				{m.db_sidebar_playground()}
 			</p>
 		</a>
+		<a href="/billing" class="section-button" class:selected={billingPathRegex.test($page.url.pathname)}>
+			<CreditCard />
+			<p
+				class:text-selected={billingPathRegex.test($page.url.pathname)}
+				class:text-normal={!billingPathRegex.test($page.url.pathname)}
+			>
+				{m.db_sidebar_billing()}
+			</p>
+		</a>
 	</div>
 	<div class="bottom-sections">
-		<a href="https://t.me/nexara_news" class="section-link-bottom">
+		<a
+			href={languageTag() === 'ru' ? 'https://t.me/nexara_news' : 'https://discord.gg/wuj8dwQKrv'}
+			class="section-link-bottom"
+		>
 			<Rss></Rss>
 			<p>{m.db_sidebar_blog()}</p>
 		</a>

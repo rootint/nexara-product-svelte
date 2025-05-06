@@ -10,6 +10,7 @@
 	import Parallax from '../components/Parallax.svelte';
 	import Sidebar from '../components/dashboard/Sidebar.svelte';
 	import Topbar from '../components/dashboard/Topbar.svelte';
+	import Onboarding from '../components/onboarding/Onboarding.svelte';
 
 	onMount(async () => {
 		authStore.initialize();
@@ -34,6 +35,8 @@
 		}
 	});
 </script>
+
+<Onboarding />
 
 <ParaglideJS {i18n}>
 	<Parallax></Parallax>

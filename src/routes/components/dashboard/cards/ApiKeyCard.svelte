@@ -4,6 +4,7 @@
 	import { Check, Copy, Eye, RefreshCcw, UploadCloud } from 'lucide-svelte';
 	let isKeyShown = false;
 	let isKeyCopied = false;
+    import * as m from '$lib/paraglide/messages.js';
 
 	function toggleShowKey() {
 		isKeyShown = !isKeyShown;
@@ -61,7 +62,7 @@
 
 <div class="card">
 	<div class="card-header">
-		<p class="card-title">API-ключ</p>
+		<p class="card-title">{m.db_api_key_title()}</p>
 	</div>
 	{#if $dashboardStore.apiKey}
 		<div class="key-row">

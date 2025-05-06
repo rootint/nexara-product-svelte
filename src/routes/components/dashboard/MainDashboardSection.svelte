@@ -17,7 +17,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { parseSrt, formatDurationHMS } from '$lib/utils/subtitles';
 	import TranscriptionCard from './cards/TranscriptionCard.svelte';
-	import BalanceCard from './cards/BalanceCard.svelte';
+	import BillingMainCard from './cards/BillingMainCard.svelte';
 	import ApiKeyCard from './cards/ApiKeyCard.svelte';
 	import GuideCard from './cards/GuideCard.svelte';
 	import TranscriptionMainCard from './cards/TranscriptionMainCard.svelte';
@@ -165,13 +165,21 @@
 	<div class="main-container">
 		<div class="card-cols">
 			<div class="card-col">
-				<BalanceCard />
-				<ApiKeyCard />
-				<TranscriptionMainCard />
+				<div id="onboarding-balance">
+					<BillingMainCard />
+				</div>
+				<div id="onboarding-apikey">
+					<ApiKeyCard />
+				</div>
+				<div id="onboarding-transcription">
+					<TranscriptionMainCard />
+				</div>
 			</div>
 			<div class="card-col">
-				<GuideCard />
-				<!-- <BalanceCard /> -->
+				<div id="onboarding-guide">
+					<GuideCard />
+				</div>
+				<!-- <Billing /> -->
 			</div>
 		</div>
 	</div>

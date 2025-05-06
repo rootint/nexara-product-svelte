@@ -1,6 +1,6 @@
 <script>
-	import { ParaglideJS } from '@inlang/paraglide-sveltekit'
-	import { i18n } from '$lib/i18n'
+	import { ParaglideJS } from '@inlang/paraglide-sveltekit';
+	import { i18n } from '$lib/i18n';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -27,17 +27,16 @@
 		}
 	}
 </script>
+
 <ParaglideJS {i18n}>
+	<Parallax></Parallax>
 
-
-<Parallax></Parallax>
-
-<div class="app">
-    <!-- <ScrollableHeader></ScrollableHeader>
+	<div class="app">
+		<!-- <ScrollableHeader></ScrollableHeader>
 	<Header></Header> -->
-	<main>
-		<slot />
-	</main>
-	<!-- <Footer /> -->
-</div>
+		<main>
+			<slot />
+		</main>
+		<!-- <Footer /> -->
+	</div>
 </ParaglideJS>

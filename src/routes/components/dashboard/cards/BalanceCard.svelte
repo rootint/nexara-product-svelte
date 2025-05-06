@@ -142,7 +142,7 @@
 			bind:value={inputCredits}
 			placeholder={m.db_billing_form_placeholder()}
 			min="0"
-			step="10"
+			step="0.1"
 		/>
 		<button type="submit" class="buy-btn {isButtonDisabled ? 'disabled' : ''}"
 			><p class="buy-btn-text">{m.db_billing_pay_button()}</p>

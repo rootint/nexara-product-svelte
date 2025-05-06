@@ -90,5 +90,8 @@
     "onboarding_button_previous": "Назад",
     "onboarding_button_next": "Далее",
     "onboarding_button_start": "Начать",
-    "onboarding_step_indicator": "Шаг {currentStep} из {totalSteps}"
+    "onboarding_step_indicator": "Шаг {currentStep} из {totalSteps}",
+    "referral_title": "Реферальная программа",
+    "referral_content": "Если вы пригласите друга, и он станет платящим клиентом, вы получите 5% скидку. За подробностями пишите в ",
+    "referral_discord": "Telegram"
 }

@@ -36,11 +36,13 @@
 			</div>
 			<div class="card-col">
 				<div class="card referral-card">
-					<h2 class="card-title">Referral Program</h2>
+					<p class="card-title">{m.referral_title()}</p>
 					<p>
-						If you refer a friend, and they become a paying customer, you are eligible for a 5%
-						discount. For more details, write to @rnd_random in our <a
-							href="https://discord.gg/wuj8dwQKrv">Discord channel</a
+						{m.referral_content()}
+						<a
+							href={languageTag() === 'ru'
+								? 'https://t.me/RND_RandoM'
+								: 'https://discord.gg/wuj8dwQKrv'}>{m.referral_discord()}</a
 						>.
 					</p>
 				</div>
@@ -76,15 +78,13 @@
 		border: 1px solid rgba(255, 255, 255, 0.11); /* Added border like other cards */
 	}
 
-	.referral-card h2 {
-		margin-bottom: 16px; /* Added space below title */
-		font-size: 24px;
-		color: rgb(250, 250, 250);
+	.card-title {
+		color: rgba(250, 250, 250, 0.5) !important;
+        margin-bottom: 24px;
 	}
 
 	.referral-card p {
-		color: rgba(250, 250, 250, 0.75);
-		line-height: 1.6; /* Improved readability */
+		color: rgba(250, 250, 250, 1);
 	}
 
 	@media (max-width: 1300px) {

@@ -91,5 +91,8 @@
     "onboarding_button_previous": "Previous",
     "onboarding_button_next": "Next",
     "onboarding_button_start": "Get Started",
-    "onboarding_step_indicator": "Step {currentStep} of {totalSteps}"
+    "onboarding_step_indicator": "Step {currentStep} of {totalSteps}",
+    "referral_title": "Referral",
+    "referral_content": "If you refer a friend, and they become a paying customer, you are eligible for a 5% discount. For more details, write to @rnd_random in our ",
+    "referral_discord": "Discord channel"
 }

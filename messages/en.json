@@ -26,7 +26,7 @@
     "db_transcribe_drag_drop": "Drag and drop an audio/video file here",
     "db_transcribe_or": "or",
     "db_transcribe_upload": "Choose a file",
-    "db_transcribe_supported_formats": "Supported formats:",
+    "db_transcribe_supported_formats": "Up to 1GB. Supported formats:",
     "alert_select_single_file": "Please select or drag only one file.",
     "error_invalid_transcription_format": "Received incorrect transcription result format from the server.",
     "error_unknown_transcription": "An unknown error occurred during transcription.",

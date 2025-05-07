@@ -26,7 +26,7 @@
     "db_transcribe_drag_drop": "Перетащите аудио/видео файл сюда",
     "db_transcribe_or": "или",
     "db_transcribe_upload": "Выберите файл",
-    "db_transcribe_supported_formats": "Поддерживаются:",
+    "db_transcribe_supported_formats": "Размер файла до 1GB. Поддерживаемые форматы:",
     "alert_select_single_file": "Пожалуйста, выберите или перетащите только один файл.",
     "error_invalid_transcription_format": "Получен некорректный формат результата транскрибации от сервера.",
     "error_unknown_transcription": "Произошла неизвестная ошибка при транскрибации.",

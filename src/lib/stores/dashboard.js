@@ -14,9 +14,9 @@ function createDashboardStore() {
 		error: null
 	});
 
-	// const api = new ApiClient('https://api-test.nexara.ru');
-	// const api = new ApiClient('https://api.nexara.ru');
-	const api = new ApiClient('http://localhost:8000');
+	// const api = new ApiClient('http://api-test.nexara.ru');
+	const api = new ApiClient('https://api.nexara.ru');
+	// const api = new ApiClient('http://localhost:8000');
 
 	return {
 		subscribe,

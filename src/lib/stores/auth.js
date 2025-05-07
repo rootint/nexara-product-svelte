@@ -2,6 +2,7 @@
 import { writable } from 'svelte/store';
 import { AuthApi } from '$lib/api/auth';
 import { goto } from '$app/navigation';
+import { languageTag } from '$lib/paraglide/runtime.js';
 
 // Create our auth store with initial state
 function createAuthStore() {
@@ -31,8 +32,11 @@ function createAuthStore() {
 					token,
 					user: email // Or decode JWT for more user info
 				});
-
-				goto('/');
+				if (languageTag === 'ru') {
+					goto('/');
+				} else {
+					goto('/en');
+				}
 			} catch (error) {
 				throw error;
 			}
@@ -57,7 +61,11 @@ function createAuthStore() {
 				user: null,
 				token: null
 			});
-			goto('/login');
+			if (languageTag === 'ru') {
+				goto('/login');
+			} else {
+				goto('/en/login');
+			}
 		},
 
 		// Initialize store from localStorage on app start

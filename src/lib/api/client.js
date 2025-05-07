@@ -5,8 +5,9 @@ export class ApiClient {
 	}
 
 	// This method automatically injects the token into every request
-	async makeRequest(endpoint, options = {}, body = null) {
+	async makeRequest(endpoint, options = {}, body = null, form = null) {
 		const token = localStorage.getItem('auth_token');
+		console.log(body);
 
 		const headers = {
 			...options.headers,
@@ -17,11 +18,21 @@ export class ApiClient {
 			headers['Content-Type'] = 'application/json';
 		}
 
-		const response = await fetch(`${this.baseUrl}${endpoint}`, {
-			...options,
-			headers,
-			body: body ? JSON.stringify(body) : null
-		});
+		let response;
+
+		if (form) {
+			response = await fetch(`${this.baseUrl}${endpoint}`, {
+				...options,
+				headers,
+				body: form
+			});
+		} else {
+			response = await fetch(`${this.baseUrl}${endpoint}`, {
+				...options,
+				headers,
+				body: body ? JSON.stringify(body) : null
+			});
+		}
 
 		if (!response.ok) {
 			if (response.status === 401) {

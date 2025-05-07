@@ -2,76 +2,95 @@
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import Header from '../components/Header.svelte';
+	import * as m from '$lib/paraglide/messages.js';
+	// Optional: Import goto for navigation after successful registration
+	// import { goto } from '$app/navigation';
 
 	let email = '';
 	let password = '';
 	let confirmPassword = '';
 	let error = '';
+	// Initialize location to match the placeholder option value
+	let location = ''; // <-- Changed initial value
 
 	async function handleSubmit() {
+		// Reset error on new submission
+		error = '';
 		try {
-			if (password === confirmPassword) {
-				await authStore.register(email, password);
-				await dashboardStore.createApiKey();
-			} else {
-				throw Error('Пароли не совпадают');
+			// --- Location Validation ---
+			if (!location) {
+				// Check if location is still the default empty string
+				throw new Error('Пожалуйста, выберите ваш регион.');
 			}
-			// goto('/');
+
+			// --- Password Validation ---
+			if (password !== confirmPassword) {
+				throw new Error('Пароли не совпадают.');
+			}
+
+			// --- API Calls ---
+			// Wait for registration to complete successfully
+			await authStore.register(email, password);
+
+			// Only create API key if registration was successful
+			// authStore.register should ideally throw an error on failure
+			// which would be caught by the catch block below.
+			await dashboardStore.createApiKey(location); // location is 'ru' or 'row'
+
+			// --- Success Navigation (Optional) ---
+			// Clear form fields?
+			// email = ''; password = ''; confirmPassword = ''; location = '';
+			// await goto('/dashboard'); // Or wherever you want to redirect
 		} catch (e) {
-			error = e.message;
+			// Check if error object has a specific detail field from API response
+			if (e.response && e.response.data && e.response.data.detail) {
+				error = e.response.data.detail;
+			} else if (e.message) {
+				error = e.message; // Use message from thrown Error or other generic errors
+			} else {
+				error = 'Произошла неизвестная ошибка при регистрации.'; // Fallback error
+			}
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Зарегистрироваться в Nexara</title>
+	<title>Nexara Dashboard</title>
 </svelte:head>
 
 <Header></Header>
 
-<!-- 
-{#if error}
-	<p style="color: red;">{error}</p>
-{/if}
-
-<form on:submit|preventDefault={handleSubmit}>
-	<div>
-		<label for="email">Email:</label>
-		<input type="email" id="email" bind:value={email} required />
-	</div>
-	<div>
-		<label for="password">Password:</label>
-		<input type="password" id="password" bind:value={password} required />
-	</div>
-	<div>
-		<label for="confirm-password">Confirm Password:</label>
-		<input type="password" id="confirm-password" bind:value={confirmPassword} required />
-	</div>
-	<button type="submit">Register</button>
-</form>
-<a href="/login">Login</a> -->
-
 <section class="login">
 	<div class="card">
-		<h2>Зарегистрироваться</h2>
+		<h2>{m.auth_register_title()}</h2>
 		<form on:submit|preventDefault={handleSubmit}>
 			<p>Email</p>
-			<input type="email" bind:value={email} placeholder="test@mail.ru" />
-			<p>Пароль</p>
-			<input type="password" bind:value={password} placeholder="password" />
-			<p>Подтвердите пароль</p>
-			<input type="password" bind:value={confirmPassword} placeholder="password" />
+			<input type="email" bind:value={email} placeholder={m.auth_email_placeholder()} required />
+			<p>{m.auth_password_label()}</p>
+			<input type="password" bind:value={password} placeholder="password" required />
+			<p>{m.auth_repeat_password_label()}</p>
+			<input type="password" bind:value={confirmPassword} placeholder="password" required />
+
+			<!-- Location Dropdown -->
+			<p>{m.auth_location_label()}</p>
+			<select bind:value={location} required>
+				<option value="" disabled selected>-- {m.auth_pick_dropdown()} --</option>
+				<option value="row">{m.auth_row_dropdown()}</option>
+				<option value="ru">{m.auth_russia_dropdown()}</option>
+			</select>
+			<!-- End Location Dropdown -->
+
 			{#if error}
 				<p class="error">{error}</p>
 			{/if}
-			<button type="submit"><p class="btn-text">Зарегистрироваться</p></button>
-			<!-- <MainButton text="Войти" ></MainButton> -->
+			<button type="submit"><p class="btn-text">{m.auth_register_title()}</p></button>
 		</form>
-		<p class="register-text">Уже есть аккаунт? <a href="/login">Войти</a></p>
+		<p class="register-text">{m.auth_have_account()} <a href="/login">{m.auth_login_title()}</a></p>
 	</div>
 </section>
 
 <style>
+	/* Existing styles */
 	.register-text {
 		width: 100%;
 		text-align: center;
@@ -90,6 +109,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		margin-top: 16px; /* Added margin */
 	}
 	.btn-text {
 		margin-bottom: 0;
@@ -100,8 +120,12 @@
 	}
 	.error {
 		color: #ca2a2a;
+		margin-top: 10px;
+		text-align: center;
 	}
-	input {
+	input,
+	select {
+		/* Apply input styles to select */
 		width: 100%;
 		background-color: rgba(255, 255, 255, 0.02);
 		border: solid 1px rgba(255, 255, 255, 0.11);
@@ -109,8 +133,24 @@
 		padding: 16px 16px;
 		margin-bottom: 24px;
 		outline: none;
+		color: #fff; /* Ensure text is visible */
+		/* Add appearance reset for better cross-browser consistency if needed */
+		/* -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none; */
 	}
-	input:focus {
+	/* Style the placeholder option */
+	select option[disabled] {
+		color: #777;
+	}
+	/* Style the actual options */
+	select option {
+		background-color: #222; /* Dark background for dropdown */
+		color: #fff;
+	}
+	input:focus,
+	select:focus {
+		/* Apply focus styles to select */
 		border: 1px solid #ffffff;
 	}
 	p {
@@ -124,6 +164,7 @@
 	}
 	.card {
 		max-width: 500px;
+		width: 90%; /* Ensure card shrinks on smaller screens */
 	}
 	form {
 		display: flex;

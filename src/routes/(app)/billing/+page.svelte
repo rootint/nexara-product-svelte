@@ -46,6 +46,12 @@
 						>.
 					</p>
 				</div>
+				<div class="card referral-card">
+					<p class="card-title">Диаризация</p>
+					<p>
+						Обратите внимание, что если вы используете диаризацию, то каждая минута тарифицируется как две.
+					</p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -75,12 +81,11 @@
 		padding: 24px;
 		display: flex;
 		flex-direction: column;
-		border: 1px solid rgba(255, 255, 255, 0.11); /* Added border like other cards */
 	}
 
 	.card-title {
 		color: rgba(250, 250, 250, 0.5) !important;
-        margin-bottom: 24px;
+		margin-bottom: 24px;
 	}
 
 	.referral-card p {

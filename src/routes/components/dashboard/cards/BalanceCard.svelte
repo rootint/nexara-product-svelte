@@ -35,6 +35,19 @@
 		try {
 			if (languageTag() === 'ru') {
 				if (inputCredits >= 200) {
+					var receipt = {
+						items: [
+							//товарные позициии
+							{
+								label: 'Минуты для транскрибации речи', //тег-1030 наименование товара или услуги
+								price: $dashboardStore.personalPrice * 60, //тег-1079 цена
+								quantity: Number(inputCredits / ($dashboardStore.personalPrice * 60)), //тег-1023 количество
+								amount: Number(inputCredits), //тег-1043 сумма
+								vat: 0 //тег-1199 ставка НДС
+							}
+						],
+                        taxationSystem: 1,
+					};
 					payments.pay(
 						'auth', // или 'charge'
 						{
@@ -45,7 +58,10 @@
 							currency: 'RUB',
 							skin: 'modern', //дизайн виджета (необязательно)
 							data: {
-								userId: $dashboardStore.userId
+								userId: $dashboardStore.userId,
+								CloudPayments: {
+									CustomerReceipt: receipt,
+								}
 							}
 						},
 						{

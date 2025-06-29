@@ -52,7 +52,7 @@
 				<BalanceCard />
 			</div>
 			<div class="card-col">
-				<div class="card referral-card">
+				<!-- <div class="card referral-card">
 					<p class="card-title">{m.referral_title()}</p>
 					<p>
 						{m.referral_content()}
@@ -62,7 +62,7 @@
 								: 'https://discord.gg/wuj8dwQKrv'}>{m.referral_discord()}</a
 						>.
 					</p>
-				</div>
+				</div> -->
 				<div class="card referral-card">
 					<p class="card-title">Диаризация</p>
 					<p>

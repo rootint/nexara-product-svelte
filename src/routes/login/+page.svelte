@@ -53,9 +53,6 @@
 			<button type="submit"><p class="btn-text">{m.auth_login_title()}</p></button>
 			<!-- <MainButton text="Войти" ></MainButton> -->
 		</form>
-		<p class="register-text">
-			{m.auth_no_account()} <a href="/register">{m.auth_register_title()}</a>
-		</p>
 	</div>
 </section>
 
@@ -66,10 +63,10 @@
 		color: #777;
 	}
 	a {
-		color: #aaa;
+		color: var(--primary);
 	}
 	button {
-		background-color: #fff;
+		background-color: var(--primary);
 		padding: 16px 42px;
 		border-radius: var(--border-radius);
 		border: none;
@@ -81,7 +78,7 @@
 	}
 	.btn-text {
 		margin-bottom: 0;
-		color: #111;
+		color: var(--btn-text);
 		font-weight: 450;
 		font-size: 16px;
 		background-color: none;
@@ -91,15 +88,18 @@
 	}
 	input {
 		width: 100%;
-		background-color: rgba(255, 255, 255, 0.02);
-		border: solid 1px rgba(255, 255, 255, 0.11);
+		/* background-color: rgba(255, 255, 255, 0.02); */
+		background-color: var(--card-bg-color);
+		border: 1px solid var(--border-color);
+		/* border: solid 1px rgba(255, 255, 255, 0.11); */
 		border-radius: var(--border-radius);
 		padding: 16px 16px;
 		margin-bottom: 24px;
 		outline: none;
 	}
 	input:focus {
-		border: 1px solid #ffffff;
+		/* border: 1px solid #ffffff; */
+		border: 1px solid var(--primary);
 	}
 	p {
 		margin-bottom: 8px;
@@ -112,6 +112,7 @@
 	}
 	.card {
 		max-width: 500px;
+		background-color: var(--card-bg-color);
 	}
 	form {
 		display: flex;

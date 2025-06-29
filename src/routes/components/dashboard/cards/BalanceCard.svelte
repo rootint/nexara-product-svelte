@@ -193,12 +193,6 @@
 						: (500 * 60 * $dashboardStore.personalPrice * 60).toFixed(0);
 			}}>{m.db_billing_fast_button_3()}</button
 		>
-		<p class="fast-buttons-subtitle">
-			{m.db_billing_large_amount()}
-			<a href="https://t.me/RND_RandoM" target="_blank">
-				{m.db_billing_support()}
-			</a>
-		</p>
 	</div>
 </div>
 

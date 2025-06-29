@@ -7,7 +7,7 @@
 		<div class="top-row">
 			<img src={icon} width="21" alt="logo" />
 			<div style="width: 12px" />
-			<p class="logo">Nexara</p>
+			<p class="logo">Innopolis</p>
 		</div>
 		<div class="top-row">
 			<div class="hide-on-mobile">
@@ -28,6 +28,11 @@
 </header>
 
 <style>
+    img {
+        background-color: #111;
+        padding: 4px;
+        border-radius: 4px;
+    }
 	.show-on-mobile {
 		display: none;
 	}

@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>Биллинг Nexara</title>
+	<title>Nexara</title>
 	<meta name="description" content="Nexara" />
 	<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link

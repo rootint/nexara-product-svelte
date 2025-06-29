@@ -146,6 +146,8 @@ function createDashboardStore() {
 			formData.append('file', file, file.name); // Ensure filename is included
 			formData.append('response_format', 'srt');
 			formData.append('is_dashboard', true);
+      formData.append('task', 'diarize');
+      formData.append('experimental', true);
 
 			// Note: The ApiClient base URL is 'https://api.nexara.ru'
 			// The required endpoint is '/api/v1/audio/transcriptions'

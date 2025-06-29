@@ -25,7 +25,7 @@
 <aside class="sidebar">
 	<div class="logo-row">
 		<img src={icon} width="21" alt="logo" />
-		<p>Nexara</p>
+		<p>Innopolis</p>
 	</div>
 	<div class="main-sections">
 		<a href="/" class="section-button" class:selected={rootPathRegex.test($page.url.pathname)}>
@@ -89,6 +89,11 @@
 </aside>
 
 <style>
+    img {
+        background-color: #111;
+        padding: 4px;
+        border-radius: 4px;
+    }
 	.logout-btn {
 		display: flex;
 		text-decoration: none;
@@ -121,14 +126,15 @@
 		padding-bottom: 16px;
 	}
 	.selected {
-		background-color: rgba(255, 255, 255, 0.05);
-		border-radius: 12px;
+		/* background-color: rgba(255, 255, 255, 0.05); */
+        background-color: var(--secondary-button);
+		border-radius: var(--border-radius);
 	}
 	.text-selected {
-		font-weight: 450;
+		font-weight: 600;
 	}
 	.text-normal {
-		font-weight: 400;
+		font-weight: 500;
 	}
 	.section-button {
 		display: flex;
@@ -137,7 +143,7 @@
 		text-decoration: none;
 		color: inherit;
 		padding: 12px;
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		margin-bottom: 16px;
 		gap: 12px;
 	}
@@ -145,7 +151,7 @@
 		margin-left: 0;
 	}
 	.section-button:hover {
-		background-color: rgba(255, 255, 255, 0.03);
+		background-color: var(--secondary-button-hover);
 	}
 	.main-sections {
 		display: flex;
@@ -164,7 +170,8 @@
 	}
 	.sidebar {
 		padding: 0px;
-		background-color: rgba(255, 255, 255, 0.015);
+		/* background-color: rgba(255, 255, 255, 0.015); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);

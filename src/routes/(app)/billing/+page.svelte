@@ -24,6 +24,23 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Биллинг Nexara</title>
+	<meta name="description" content="Nexara" />
+	<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Golos+Text:wght@400..900&display=swap"
+		rel="stylesheet"
+	/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+		rel="stylesheet"
+	/>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+</svelte:head>
+
 {#if !$authStore.isAuthenticated}
 	<div class="main-container">
 		<div class="card-cols">Loading...</div>
@@ -75,21 +92,25 @@
 	}
 
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		/* background-color: rgba(250, 250, 250, 0.01); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 24px;
 		display: flex;
 		flex-direction: column;
 	}
 
 	.card-title {
-		color: rgba(250, 250, 250, 0.5) !important;
+		/* color: rgba(250, 250, 250, 0.5) !important; */
+        color: var(--text) !important;
+        font-weight: 500 !important;
 		margin-bottom: 24px;
 	}
 
 	.referral-card p {
-		color: rgba(250, 250, 250, 1);
+		/* color: rgba(250, 250, 250, 1); */
+        color: var(--text-2);
 	}
 
 	@media (max-width: 1300px) {

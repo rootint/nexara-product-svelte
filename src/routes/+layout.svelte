@@ -29,7 +29,7 @@
 </script>
 
 <ParaglideJS {i18n}>
-	<Parallax></Parallax>
+	<!-- <Parallax></Parallax> -->
 
 	<div class="app">
 		<!-- <ScrollableHeader></ScrollableHeader>

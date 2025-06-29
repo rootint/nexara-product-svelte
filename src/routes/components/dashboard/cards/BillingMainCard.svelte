@@ -47,7 +47,8 @@
 		align-items: center;
 	}
 	.fast-buttons-subtitle {
-		color: rgb(250, 250, 250, 0.5);
+		/* color: rgb(250, 250, 250, 0.5); */
+        color: var(--text-2);
 		margin-bottom: 16px;
 		padding: 0;
 		margin: 0;
@@ -60,18 +61,19 @@
 	}
 
 	.fast-button {
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 12px 16px;
-		background-color: rgb(250, 250, 250, 0.05);
+		background-color: var(--secondary-button);
 		font-size: 16px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
+		border: 1px solid var(--border-color);
 		cursor: pointer;
 		outline: none;
 		min-width: 0;
 		flex-shrink: 0;
 	}
 	.fast-button:hover {
-		background-color: rgb(250, 250, 250, 0.1);
+		/* background-color: rgb(250, 250, 250, 0.1); */
+        background-color: var(--secondary-button-hover);
 	}
 	.buy-btn-text {
 		color: #111;
@@ -85,7 +87,7 @@
 		margin-bottom: 16px;
 	}
 	.buy-btn {
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 16px 24px;
 		background-color: rgb(250, 250, 250);
 		font-size: 16px;
@@ -101,8 +103,8 @@
 		outline: none;
 	}
 	input {
-		border: 1px solid rgba(250, 250, 250, 0.11);
-		border-radius: 12px;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
 		padding: 16px 24px;
 		background-color: rgba(250, 250, 250, 0.03);
 		font-size: 16px;
@@ -127,14 +129,16 @@
 		margin-bottom: 4px;
 	}
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		/* background-color: rgba(250, 250, 250, 0.01); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 	}
 	.card-title {
-		color: rgba(250, 250, 250, 0.5);
+		/* color: rgba(250, 250, 250, 0.5); */
+        color: var(--text);
 		margin-bottom: 24px;
 	}
 	.top-row {
@@ -144,7 +148,7 @@
 	}
 	.personal-rate {
 		padding: 12px 16px;
-		border-radius: 12px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
+		border-radius: var(--border-radius);
+		border: 1px solid var(--border-color);
 	}
 </style>

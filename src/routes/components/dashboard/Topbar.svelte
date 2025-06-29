@@ -44,20 +44,23 @@
 
 <style>
 	h3 {
-		font-weight: 450;
+		font-weight: 500;
 		font-size: 16px;
-		color: #fafafa;
+		/* color: #fafafa; */
+        color: var(--text);
 		margin: 0;
 		padding: 0;
 	}
 	.user-id {
-		color: rgba(250, 250, 250, 0.5);
+		/* color: rgba(250, 250, 250, 0.5); */
+        color: var(--text-2);
 		transition: color 0.2s ease-in-out; /* Smooth transition for text color */
 	}
 	.user-id-container {
 		padding: 8px 12px;
-		border-radius: 12px;
-		border: rgba(250, 250, 250, 0.11) solid 1px;
+		border-radius: var(--border-radius);
+		/* border: rgba(250, 250, 250, 0.11) solid 1px; */
+        border: 1px solid var(--border-color);
 		cursor: pointer; /* Add pointer cursor */
 		transition: background-color 0.2s ease-in-out; /* Smooth transition for background */
 	}
@@ -72,11 +75,13 @@
 		/* Width is now 100% of the right-panel */
 		/* height: 50px; */
 		align-items: center;
-		background-color: rgba(255, 255, 255, 0.015);
+		/* background-color: rgba(255, 255, 255, 0.015); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+		/* border-bottom: 1px solid rgba(255, 255, 255, 0.11); */
+        border-bottom: 1px solid var(--border-color);
 		display: flex;
 		justify-content: space-between;
 		padding: 16px 32px;

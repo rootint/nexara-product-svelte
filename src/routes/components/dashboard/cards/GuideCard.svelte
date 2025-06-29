@@ -9,7 +9,7 @@
 	import n8n from '$lib/assets/n8n.jpg';
 	import binary from '$lib/assets/binary.jpg';
 
-	let selectedGuide = 'n8n'; // Default selection
+	let selectedGuide = 'python requests'; // Default selection
 	let isCurlCopied = false;
 	let isPythonCopied = false; // Add state for python code copy
 
@@ -79,13 +79,12 @@ with open(file_path, "rb") as audio_file:
 		<div class="card-header">
 			<p class="card-title">{m.db_guide_title()}</p>
 		</div>
-		<div class="guide-selector">
+		<!-- <div class="guide-selector">
 			<select bind:value={selectedGuide}>
 				<option value="n8n">n8n</option>
 				<option value="python requests">Python Requests</option>
-				<!-- <option value="openai python">OpenAI Python</option> -->
 			</select>
-		</div>
+		</div> -->
 	</div>
 	<div style="height: 24px;"></div>
 
@@ -170,7 +169,7 @@ with open(file_path, "rb") as audio_file:
 
 <style>
 	code {
-		font-family: monospace;
+		font-family: 'IBM Plex Mono', monospace;
 	}
 	.guide-content {
 		display: flex;
@@ -179,7 +178,8 @@ with open(file_path, "rb") as audio_file:
 	}
 
 	.guide-content p {
-		color: rgba(250, 250, 250, 0.8);
+		/* color: rgba(250, 250, 250, 0.8); */
+        color: var(--text-2);
 		margin: 0;
 		line-height: 1.5;
 	}
@@ -195,24 +195,25 @@ with open(file_path, "rb") as audio_file:
 
 	.guide-image {
 		width: 100%;
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		display: block; /* Prevent extra space below image */
 	}
 
 	.code-block-card {
 		position: relative; /* For positioning the copy button */
-		border-radius: 12px;
+		border-radius: var(--border-radius);
+        background-color: var(--card-bg-color);
 		padding: 16px;
-		border: 1px solid rgba(250, 250, 250, 0.11); /* Default border */
+		border: 1px solid var(--border-color); /* Default border */
 		width: 100%;
-		background-color: transparent; /* No background */
 		box-sizing: border-box; /* Include padding and border in width */
 	}
 
 	.code-block-card pre {
 		margin: 0;
 		font-family: monospace;
-		color: rgba(250, 250, 250, 0.9);
+		/* color: rgba(250, 250, 250, 0.9); */
+        color: var(--text);
 		white-space: pre-wrap; /* Wrap long lines */
 		word-break: break-all; /* Break long words/URLs */
 		font-size: 14px;
@@ -223,19 +224,20 @@ with open(file_path, "rb") as audio_file:
 		top: 12px;
 		right: 12px;
 		outline: none;
-		border: 1px solid rgba(250, 250, 250, 0.11);
-		background-color: rgba(250, 250, 250, 0.05);
+		border: 1px solid var(--border-color);
+		background-color: var(--secondary-button);
 		padding: 6px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 8px; /* Slightly smaller radius for button */
+		border-radius: 2px; /* Slightly smaller radius for button */
 		cursor: pointer;
 		color: rgba(250, 250, 250, 0.7);
 	}
 
 	.copy-btn-code:hover {
-		background-color: rgba(250, 250, 250, 0.1);
+		/* background-color: rgba(250, 250, 250, 0.1); */
+        background-color: var(--secondary-button-hover);
 		color: rgba(250, 250, 250, 0.9);
 	}
 
@@ -273,15 +275,17 @@ with open(file_path, "rb") as audio_file:
 		color: #fafafa;
 	}
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		/* background-color: rgba(250, 250, 250, 0.01); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 24px; /* Main card padding */
 	}
 	.card-title {
-		color: rgba(250, 250, 250, 0.5);
+		/* color: rgba(250, 250, 250, 0.5); */
+        color: var(--text);
 		margin: 0;
 	}
 </style>

@@ -27,28 +27,30 @@
 
 <style>
 	.btn-text {
-		color: #111;
+		color: var(--btn-text);
 		font-size: 16px;
 	}
 	.buy-btn {
-		background-color: rgba(250, 250, 250);
+		/* background-color: rgba(250, 250, 250); */
+        background-color: var(--primary);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 12px 20px;
 		border: none;
 		outline: none;
 		cursor: pointer;
 	}
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		/* background-color: rgba(250, 250, 250, 0.01); */
+        background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 	}
 	.card-title {
-		color: rgba(250, 250, 250, 0.5);
+		color: var(--text);
 	}
 </style>

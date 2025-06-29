@@ -1,20 +1,32 @@
 :root {
-	--text: #fff;
+	/* --text: #fff;
 	--bg: #161616;
 	--text-2: #bbb;
 	--text-3: #ddd;
-	--bg-2: #181818;
-	/* --desktop-width: 1368px; */
-	/* --desktop-width: 1900px; */
+	--bg-2: #181818; */
+    --bg: #ffffff;
+    --primary: #40ba21;
+    --primary-dark: #15b012;
+    --text: #12152a;
+    --btn-text: #ffffff;
+    --text-2: #858792;
+    --card-bg-color: rgba(64, 186, 33, 0.05);
+    --secondary-button: rgba(64, 186, 33, 0.2); 
+    --secondary-button-hover: rgba(64, 186, 33, 0.3); 
+    --border-radius: 4px;
+    --border-color: rgba(18, 21, 42, 0.05);
+    /* font is montserrat */
+    /* and ibm plex mono */
 }
 
 * {
-	font-family: 'Golos Text', sans-serif;
+	/* font-family: 'Golos Text', sans-serif; */
+    font-family: 'Montserrat', sans-serif;
 	color: var(--text);
 	/* color: var(--bg); */
 	box-sizing: border-box;
 	line-height: 135%;
-	font-weight: 350;
+	font-weight: 500;
 	scroll-behavior: smooth;
 	overflow-x: hidden;
 }
@@ -116,7 +128,9 @@ p {
 
 .card {
 	/* position: relative; */
-	border-radius: 12px;
+	/* border-radius: var(--border-radius); */
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
 	padding: 24px;
 	display: flex;
 	flex-direction: column;
@@ -135,14 +149,15 @@ p {
 	right: 0;
 	bottom: 0;
 	padding: 1px; /* Thickness of the border */
-	border-radius: 12px;
-	background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.14));
+	border-radius: var(--border-radius);
+    /* background: var(--border-color); */
+	/* background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.14));
 	-webkit-mask:
 		linear-gradient(#fff 0 0) content-box,
 		linear-gradient(#fff 0 0);
 	mask:
 		linear-gradient(#fff 0 0) content-box,
-		linear-gradient(#fff 0 0);
+		linear-gradient(#fff 0 0); */
 	-webkit-mask-composite: xor;
 	mask-composite: exclude;
 	pointer-events: none; /* Prevents interaction with the pseudo-element */

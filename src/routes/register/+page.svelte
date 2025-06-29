@@ -102,7 +102,7 @@
 	button {
 		background-color: #fff;
 		padding: 16px 42px;
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		border: none;
 		cursor: pointer;
 		min-width: 274px;
@@ -129,7 +129,7 @@
 		width: 100%;
 		background-color: rgba(255, 255, 255, 0.02);
 		border: solid 1px rgba(255, 255, 255, 0.11);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 16px 16px;
 		margin-bottom: 24px;
 		outline: none;

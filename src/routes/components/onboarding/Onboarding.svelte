@@ -29,7 +29,8 @@
 	];
 
 	onMount(() => {
-		const hasCompleted = localStorage.getItem('hasCompletedOnboarding');
+		// const hasCompleted = localStorage.getItem('hasCompletedOnboarding');
+        const hasCompleted = 'true';
 		if (hasCompleted !== 'true') {
 			showOnboarding = true;
 		}
@@ -74,7 +75,7 @@
 				<button on:click={nextStep}>
 					{#if currentStep < steps.length - 1}
 						{m.onboarding_button_next()}
-						<ChevronRight color="#111" size={20} />
+						<ChevronRight color="var(--btn-text)" size={20} />
 					{:else}
 						{m.onboarding_button_start()}
 					{/if}
@@ -129,7 +130,8 @@
 
 	button {
 		padding: 12px 16px;
-		border-radius: 12px;
+        /* background-color: var(--primary); */
+		border-radius: var(--border-radius);
 		font-size: 16px;
 		border: none;
 		cursor: pointer;
@@ -141,16 +143,17 @@
 	button:last-child {
 		/* Style the primary action button */
 		background-color: #fafafa; /* Example primary color */
-		color: #111;
+        background-color: var(--primary);
+		color: var(--btn-text);
 		font-weight: 450;
 	}
 
 	button:first-child:not(:last-child) {
 		/* Style the secondary/previous button */
-		background-color: rgb(250, 250, 250, 0.05);
+		background-color: var(--secondary-button);
 		font-size: 16px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
-		color: #fafafa;
+		border: 1px solid var(--border-color);
+		color: var(--text);
 	}
 
 	button:hover {

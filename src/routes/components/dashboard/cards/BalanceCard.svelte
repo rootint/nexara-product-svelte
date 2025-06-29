@@ -161,7 +161,7 @@
 			step="0.1"
 		/>
 		<button type="submit" class="buy-btn {isButtonDisabled ? 'disabled' : ''}"
-			><p class="buy-btn-text">{m.db_billing_pay_button()}</p>
+			><p class="buy-btn-text {isButtonDisabled ? 'disabled' : ''}">{m.db_billing_pay_button()}</p>
 		</button>
 	</form>
 	<p class="form-subtitle">{subtitleText}</p>
@@ -204,7 +204,8 @@
 
 <style>
 	.fast-buttons-subtitle {
-		color: rgb(250, 250, 250, 0.5);
+		/* color: rgb(250, 250, 250, 0.5); */
+        color: var(--text-2);
 		margin-bottom: 16px;
 		padding: 0;
 		margin: 0;
@@ -217,34 +218,43 @@
 	}
 
 	.fast-button {
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 12px 16px;
-		background-color: rgb(250, 250, 250, 0.05);
+		background-color: var(--secondary-button);
 		font-size: 16px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
+		border: 1px solid var(--border-color);
 		cursor: pointer;
 		outline: none;
 		min-width: 0;
 		flex-shrink: 0;
 	}
 	.fast-button:hover {
-		background-color: rgb(250, 250, 250, 0.1);
+		background-color: var(--secondary-button-hover);
 	}
 	.buy-btn-text {
-		color: #111;
+		/* color: #111; */
+        color: var(--btn-text);
+		font-size: 16px;
+		font-weight: 500;
+	}
+    .buy-btn-text.disabled {
+		/* color: #111; */
+        color: var(--text-2);
 		font-size: 16px;
 		font-weight: 500;
 	}
 	.form-subtitle {
 		margin-top: 8px;
 		font-size: 14px;
-		color: rgb(250, 250, 250, 0.5);
+		/* color: rgb(250, 250, 250, 0.5); */
+        color: var(--text-2);
 		margin-bottom: 16px;
 	}
 	.buy-btn {
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 16px 24px;
-		background-color: rgb(250, 250, 250);
+		/* background-color: rgb(250, 250, 250); */
+        background-color: var(--primary);
 		font-size: 16px;
 		cursor: pointer;
 		outline: none;
@@ -253,15 +263,18 @@
 		flex-shrink: 0;
 	}
 	.buy-btn.disabled {
-		background-color: rgba(250, 250, 250, 0.2);
+		/* background-color: rgba(250, 250, 250, 0.2); */
+        background-color: var(--card-bg-color);
+        border: 1px solid var(--border-color);
 		cursor: not-allowed;
 		outline: none;
 	}
 	input {
-		border: 1px solid rgba(250, 250, 250, 0.11);
-		border-radius: 12px;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
 		padding: 16px 24px;
-		background-color: rgba(250, 250, 250, 0.03);
+		/* background-color: rgba(250, 250, 250, 0.03); */
+        background-color: var(--card-bg-color);
 		font-size: 16px;
 		outline: none;
 		flex-grow: 1;
@@ -273,7 +286,8 @@
 		gap: 24px;
 	}
 	.subtitle {
-		color: rgba(250, 250, 250, 0.75);
+		/* color: rgba(250, 250, 250, 0.75); */
+        color: var(--text-2);
 		margin-bottom: 24px;
 		margin-top: 0;
 		padding: 0;
@@ -284,14 +298,15 @@
 		margin-bottom: 4px;
 	}
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 	}
 	.card-title {
-		color: rgba(250, 250, 250, 0.5);
+		/* color: rgba(250, 250, 250, 0.5); */
+        color: var(--text);
 	}
 	.top-row {
 		display: flex;
@@ -300,7 +315,8 @@
 	}
 	.personal-rate {
 		padding: 12px 16px;
-		border-radius: 12px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
+		border-radius: var(--border-radius);
+		border: 1px solid var(--border-color);
+        background-color: var(--card-bg-color);
 	}
 </style>

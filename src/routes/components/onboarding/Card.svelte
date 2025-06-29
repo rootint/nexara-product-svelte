@@ -8,10 +8,12 @@
 
 <style>
 	.card {
-		background-color: #191919;
-		border-radius: 12px;
+		/* background-color: #191919; */
+        background-color: var(--bg);
+		border-radius: var(--border-radius);
 		padding: 24px;
-		border: 1px solid rgba(0, 0, 0, 0.1);
+		/* border: 1px solid rgba(0, 0, 0, 0.1); */
+        border: 1px solid var(--border-color);
 		min-width: 500px;
         max-width: 500px;
 	}

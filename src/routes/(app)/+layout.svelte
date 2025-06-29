@@ -39,7 +39,7 @@
 <Onboarding />
 
 <ParaglideJS {i18n}>
-	<Parallax></Parallax>
+	<!-- <Parallax></Parallax> -->
 
 	<div class="app-container">
 		<div class="sidebar">
@@ -82,7 +82,8 @@
 		box-sizing: border-box;
 		/* flex-direction: column; */
 		grid-template-rows: auto 1fr auto;
-		border-right: 1px solid rgba(255, 255, 255, 0.11);
+		/* border-right: 1px solid rgba(255, 255, 255, 0.11); */
+        border-right: 1px solid var(--border-color);
 		flex-shrink: 0;
 	}
 

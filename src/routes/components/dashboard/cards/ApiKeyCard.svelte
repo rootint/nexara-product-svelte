@@ -4,7 +4,7 @@
 	import { Check, Copy, Eye, RefreshCcw, UploadCloud } from 'lucide-svelte';
 	let isKeyShown = false;
 	let isKeyCopied = false;
-    import * as m from '$lib/paraglide/messages.js';
+	import * as m from '$lib/paraglide/messages.js';
 
 	function toggleShowKey() {
 		isKeyShown = !isKeyShown;
@@ -105,41 +105,45 @@
 		gap: 16px;
 	}
 	.monospace {
-		font-family: monospace;
+		font-family: 'IBM Plex Mono', monospace;
 	}
 	.key {
 		flex-grow: 1;
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		padding: 12px 16px;
-		background-color: rgb(250, 250, 250, 0.01);
+		/* background-color: rgb(250, 250, 250, 0.01); */
+		background-color: var(--card-bg-color);
 		font-size: 16px;
-		border: 1px solid rgba(250, 250, 250, 0.11);
+		/* border: 1px solid rgba(250, 250, 250, 0.11); */
+		border: 1px solid var(--border-color);
 		outline: none;
 	}
 	.key-btn {
 		outline: none;
-		border: 1px solid rgba(250, 250, 250, 0.11);
-		background-color: rgb(250, 250, 250, 0.05);
+		border: 1px solid var(--border-color);
+		background-color: var(--secondary-button);
 		padding: 12px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 		flex-shrink: 0;
 		cursor: pointer;
 	}
 	.key-btn:hover {
-		background-color: rgb(250, 250, 250, 0.1);
+		background-color: var(--secondary-button-hover);
 	}
 	.card {
-		background-color: rgba(250, 250, 250, 0.01);
+		/* background-color: rgba(250, 250, 250, 0.01); */
+		background-color: var(--card-bg-color);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
 			skew(0deg, 0deg);
-		border-radius: 12px;
+		border-radius: var(--border-radius);
 	}
 	.card-title {
-		color: rgba(250, 250, 250, 0.5);
+		/* color: rgba(250, 250, 250, 0.5); */
+		color: var(--text);
 	}
 	.top-row {
 		display: flex;

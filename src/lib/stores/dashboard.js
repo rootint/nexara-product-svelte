@@ -148,6 +148,8 @@ function createDashboardStore() {
 			formData.append('is_dashboard', true);
       formData.append('task', 'diarize');
       formData.append('experimental', true);
+      formData.append('diarization_setting', 'telephonic');
+
 
 			// Note: The ApiClient base URL is 'https://api.nexara.ru'
 			// The required endpoint is '/api/v1/audio/transcriptions'

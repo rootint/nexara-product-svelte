@@ -3,7 +3,7 @@
 	import Card from './Card.svelte'; // Adjust path if necessary
 	import { ChevronRight } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js'; // Import all message functions as m
-    import { languageTag } from '$lib/paraglide/runtime.js';
+	import { languageTag } from '$lib/paraglide/runtime.js';
 
 	let showOnboarding = false;
 	let currentStep = 0;
@@ -82,6 +82,12 @@
 			</div>
 			<div class="step-indicator">
 				{m.onboarding_step_indicator({ currentStep: currentStep + 1, totalSteps: steps.length })}
+			</div>
+			<div class="step-indicator" style="text-align: left;">
+				Если хотите получить еще больше бесплатных минут, напишите, пожалуйста, откуда узнали о
+				сервисе и как будете его использовать в <a href="https://t.me/RND_RandoM"
+					>Telegram (@RND_RandoM)</a
+				>
 			</div>
 		</Card>
 	</div>

@@ -90,7 +90,7 @@
 							publicId: 'pk_a0f7faa18429d6e52516616de8747', //id из личного кабинета
 							description: 'Pay with card on nexara.ru', //назначение
 							amount: Number(inputCredits), //сумма
-							currency: 'EUR', //валюта
+							currency: 'RUB', //валюта
 							skin: 'modern', //дизайн виджета (необязательно)
 							data: {
 								userId: $dashboardStore.userId

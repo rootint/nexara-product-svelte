@@ -29,7 +29,7 @@
 	];
 
 	onMount(() => {
-		const hasCompleted = localStorage.getItem('hasCompletedOnboarding');
+		const hasCompleted = localStorage.getItem('hasCompletedOnboardingNew');
 		if (hasCompleted !== 'true') {
 			showOnboarding = true;
 		}
@@ -50,7 +50,7 @@
 	}
 
 	function completeOnboarding() {
-		localStorage.setItem('hasCompletedOnboarding', 'true');
+		localStorage.setItem('hasCompletedOnboardingNew', 'true');
 		showOnboarding = false;
 	}
 </script>

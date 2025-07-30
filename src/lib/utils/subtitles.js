@@ -61,8 +61,9 @@ export function formatDurationHMS(str) {
 
 /**
  * Parses an SRT subtitle string into an array of objects.
+ * Handles optional speaker tags like "[SPEAKER_00]: Text..."
  * @param {string} srtString The raw SRT content.
- * @returns {Array<{id: number, startTime: string, endTime: string, text: string}> | null} Parsed subtitles or null if input is invalid.
+ * @returns {Array<{id: number, startTime: string, endTime: string, text: string, speaker: string | null}> | null} Parsed subtitles or null if input is invalid.
  */
 export function parseSrt(srtString) {
 	if (!srtString || typeof srtString !== 'string') {
@@ -73,27 +74,54 @@ export function parseSrt(srtString) {
 	const blocks = srtString.trim().split(/\r?\n\r?\n/);
 	const subtitles = [];
 
+	// Regex to capture speaker tags like "[SPEAKER_00]: " or "SPEAKER_00: "
+	const speakerRegex = /^(?:\[(SPEAKER_\d+)\]:\s*|(SPEAKER_\d+):\s*)/;
+
 	for (const block of blocks) {
 		const lines = block.trim().split(/\r?\n/);
-		if (lines.length < 3) continue; // Need at least ID, timestamp, text
+		if (lines.length < 2) continue; // Skip blocks with less than 2 lines.
 
-		const id = parseInt(lines[0], 10);
-		const timeMatch = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})/);
+		let timeMatch;
+		let textStartIndex;
 
-		if (isNaN(id) || !timeMatch) {
-			console.warn('Skipping malformed SRT block:', block);
+		// Check if the first line is a number (ID)
+		if (/^\d+$/.test(lines[0])) {
+			if (lines.length < 3) continue; // Need at least ID, timestamp, text
+			timeMatch = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})/);
+			textStartIndex = 2;
+		} else {
+			// If no ID, assume first line is timestamp
+			timeMatch = lines[0].match(/(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})/);
+			textStartIndex = 1;
+		}
+
+
+		if (!timeMatch) {
+			console.warn('Skipping malformed SRT block (timestamp issue):', block);
 			continue; // Skip malformed blocks
 		}
 
 		const startTime = timeMatch[1];
 		const endTime = timeMatch[2];
-		const text = lines.slice(2).join('\n').trim(); // Join multi-line text
+		let text = lines.slice(textStartIndex).join('\n').trim();
+		let speaker = null;
+
+		const speakerMatch = text.match(speakerRegex);
+		if (speakerMatch) {
+			speaker = speakerMatch[1] || speakerMatch[2];
+			text = text.substring(speakerMatch[0].length).trim();
+		}
 
 		if (text) {
-			// Only add if there's actual text
-			subtitles.push({ id, startTime, endTime, text });
+			subtitles.push({
+				id: subtitles.length + 1,
+				startTime,
+				endTime,
+				text,
+				speaker
+			});
 		}
 	}
 
-	return subtitles.length > 0 ? subtitles : null; // Return null if no valid subtitles found
+	return subtitles.length > 0 ? subtitles : null;
 }

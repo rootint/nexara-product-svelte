@@ -131,7 +131,7 @@ function createDashboardStore() {
 				}));
 			}
 		},
-		async transcribeFile(file, apiKey) {
+		async transcribeFile(file, apiKey, enableDiarization, diarizationSetting, isRussian) {
 			// Get the current API key directly from the store's value
 
 			if (!apiKey) {
@@ -146,7 +146,9 @@ function createDashboardStore() {
 			formData.append('file', file, file.name); // Ensure filename is included
 			formData.append('response_format', 'srt');
 			formData.append('is_dashboard', true);
-
+			formData.append('task', enableDiarization ? 'diarize' : 'transcribe');
+			formData.append('diarization_setting', diarizationSetting);
+			formData.append('language', isRussian ? 'ru' : '');
 			// Note: The ApiClient base URL is 'https://api.nexara.ru'
 			// The required endpoint is '/api/v1/audio/transcriptions'
 			// We need to call the correct endpoint path relative to the base URL.

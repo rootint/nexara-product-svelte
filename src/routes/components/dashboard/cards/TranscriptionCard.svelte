@@ -13,6 +13,7 @@
 	import * as m from '$lib/paraglide/messages.js';
 
 	let selectedFile = null;
+	let selectedFileName = null;
 	let isDragging = false;
 	let fileInputRef = null; // Reference to the hidden file input
 	const acceptedMimeTypes = [
@@ -38,10 +39,11 @@
 		'video/mp4',
 		'video/quicktime',
 		'video/x-msvideo',
-		'video/x-matroska'
+		'video/x-matroska',
+		'video/webm'
 	];
 	const acceptedExtensionsString =
-		'.mp3, .m4a, .mp4, .wav, .ogg, .aac, .flac, .opus, .mov, .avi, .mkv';
+		'.mp3, .m4a, .mp4, .wav, .ogg, .aac, .flac, .opus, .mov, .avi, .mkv, .webm';
 
 	// Transcription State
 	let isTranscribing = false;
@@ -51,6 +53,10 @@
 	let parsedSubtitles = null; // Array of { id, startTime, endTime, text }
 	let copyButtonText = m.db_transcribe_copy();
 
+	// Diarization State
+	let enableDiarization = false;
+	let diarizationSetting = 'telephonic'; // 'general', 'telephonic', 'meeting'
+	let isRussian = true;
 	// --- File Handling Functions ---
 
 	function handleDragOver(event) {
@@ -83,6 +89,7 @@
 		}
 		const file = files[0];
 		selectedFile = file;
+		selectedFileName = file.name;
 		transcriptionResult = null;
 		transcriptionError = null;
 		parsedSubtitles = null;
@@ -104,6 +111,9 @@
 		parsedSubtitles = null;
 		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
 		if (fileInputRef) fileInputRef.value = null;
+		// Reset diarization settings
+		enableDiarization = false;
+		diarizationSetting = 'general';
 	}
 
 	// --- Transcription Function ---
@@ -118,7 +128,13 @@
 		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
 
 		try {
-			const result = await dashboardStore.transcribeFile(selectedFile, $dashboardStore.apiKey);
+			const result = await dashboardStore.transcribeFile(
+				selectedFile,
+				$dashboardStore.apiKey,
+				enableDiarization,
+				diarizationSetting,
+				isRussian
+			);
 			console.log('--- Transcription Successful ---', result);
 
 			// Basic validation of the expected result structure
@@ -217,33 +233,72 @@
 	function handleDownloadSrt() {
 		if (transcriptionResult?.srt) {
 			// Try to derive a filename if possible, otherwise use generic
-			const baseName = selectedFile?.name?.split('.').slice(0, -1).join('.') || 'transcription';
+			const baseName = selectedFileName?.split('.').slice(0, -1).join('.') || 'transcription';
 			downloadFile(transcriptionResult.srt, `${baseName}.srt`, 'text/plain;charset=utf-8'); // SRT often uses text/plain
 		}
 	}
 
 	function handleDownloadVtt() {
 		if (transcriptionResult?.vtt) {
-			const baseName = selectedFile?.name?.split('.').slice(0, -1).join('.') || 'transcription';
+			const baseName = selectedFileName?.split('.').slice(0, -1).join('.') || 'transcription';
 			downloadFile(transcriptionResult.vtt, `${baseName}.vtt`, 'text/vtt;charset=utf-8');
 		}
 	}
 
+	function fmtMSS(s) {
+		return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
+	}
+
 	function handleDownloadTxt() {
-		if (transcriptionResult?.verbose_json?.text) {
-			const baseName = selectedFile?.name?.split('.').slice(0, -1).join('.') || 'transcription';
-			downloadFile(
-				transcriptionResult.verbose_json.text,
-				`${baseName}.txt`,
-				'text/plain;charset=utf-8'
-			);
+		if (transcriptionResult?.verbose_json) {
+			const baseName = selectedFileName?.split('.').slice(0, -1).join('.') || 'transcription';
+			const segments = transcriptionResult.verbose_json.segments;
+
+			const hasDiarization =
+				Array.isArray(segments) && segments.length > 0 && segments.some((s) => s.speaker);
+
+			let content;
+			if (hasDiarization) {
+				content = segments
+					.map((segment) => {
+						const speakerLabel = (segment.speaker || 'unknown_speaker').replace('_', ' ');
+						const capitalizedSpeaker = speakerLabel.charAt(0).toUpperCase() + speakerLabel.slice(1);
+						const startTime = fmtMSS(Math.floor(segment.start));
+						const endTime = fmtMSS(Math.floor(segment.end));
+						// The user's example shows a tab.
+						return `${capitalizedSpeaker}: (${startTime} - ${endTime})\n\t${segment.text.trim()}`;
+					})
+					.join('\n\n');
+			} else {
+				content = transcriptionResult.verbose_json.text;
+			}
+
+			downloadFile(content, `${baseName}.txt`, 'text/plain;charset=utf-8');
 		}
 	}
 
 	function handleCopyText() {
-		if (transcriptionResult?.verbose_json?.text) {
-			copyToClipboard(transcriptionResult.verbose_json.text);
+		const segments = transcriptionResult.verbose_json.segments;
+
+		const hasDiarization =
+			Array.isArray(segments) && segments.length > 0 && segments.some((s) => s.speaker);
+
+		let content;
+		if (hasDiarization) {
+			content = segments
+				.map((segment) => {
+					const speakerLabel = (segment.speaker || 'unknown_speaker').replace('_', ' ');
+					const capitalizedSpeaker = speakerLabel.charAt(0).toUpperCase() + speakerLabel.slice(1);
+					const startTime = fmtMSS(Math.floor(segment.start));
+					const endTime = fmtMSS(Math.floor(segment.end));
+					// The user's example shows a tab.
+					return `${capitalizedSpeaker}: (${startTime} - ${endTime})\n\t${segment.text.trim()}`;
+				})
+				.join('\n\n');
+		} else {
+			content = transcriptionResult.verbose_json.text;
 		}
+		copyToClipboard(content);
 	}
 </script>
 
@@ -346,6 +401,30 @@
 							<p class="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
 						</div>
 					</div>
+
+					<!-- Transcription Settings -->
+					<div class="transcription-settings">
+						<label class="checkbox-label">
+							<input type="checkbox" bind:checked={isRussian} />
+							{m.db_transcribe_is_russian()}
+						</label>
+						<label class="checkbox-label" title={m.db_transcribe_enable_diarization_tooltip()}>
+							<input type="checkbox" bind:checked={enableDiarization} />
+							{m.db_transcribe_enable_diarization()}
+						</label>
+
+						{#if enableDiarization}
+							<div class="diarization-options">
+								<label for="diarization-select">{m.db_transcribe_diarization_settings()}</label>
+								<select id="diarization-select" bind:value={diarizationSetting}>
+									<option value="general">{m.db_transcribe_diarization_general()}</option>
+									<option value="telephonic">{m.db_transcribe_diarization_telephonic()}</option>
+									<option value="meeting">{m.db_transcribe_diarization_meeting()}</option>
+								</select>
+							</div>
+						{/if}
+					</div>
+
 					<div class="file-actions">
 						<button
 							class="clear-file-btn"
@@ -676,6 +755,71 @@
 	.clear-file-btn:hover {
 		background: rgba(255, 255, 255, 0.2);
 		color: #fff;
+	}
+
+	.transcription-settings {
+		width: 100%;
+		max-width: 450px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		align-items: flex-start;
+		padding: 16px 8px;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.checkbox-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 12px;
+		cursor: pointer;
+		font-size: 14px;
+		color: #ccc;
+		transition: color 0.2s ease;
+	}
+	.checkbox-label:hover {
+		color: #fff;
+	}
+
+	.checkbox-label input[type='checkbox'] {
+		width: 18px;
+		height: 18px;
+		cursor: pointer;
+		accent-color: #fff; /* Tints the checkbox when checked */
+		background-color: rgba(255, 255, 255, 0.1);
+		border-radius: 4px;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+	}
+
+	.diarization-options {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 100%;
+		padding-left: 30px; /* Indent under checkbox */
+	}
+
+	.diarization-options label {
+		font-size: 13px;
+		color: #999;
+		margin-bottom: 2px;
+	}
+
+	.diarization-options select {
+		padding: 8px 12px;
+		border-radius: 6px;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		background: rgba(0, 0, 0, 0.2);
+		color: #eee;
+		font-size: 14px;
+		width: 100%;
+		transition: border-color 0.2s ease;
+	}
+
+	.diarization-options select:focus {
+		outline: none;
+		border-color: rgba(255, 255, 255, 0.5);
 	}
 
 	@keyframes spin {

@@ -93,5 +93,12 @@
     "onboarding_step_indicator": "Шаг {currentStep} из {totalSteps}",
     "referral_title": "Реферальная программа",
     "referral_content": "Если вы пригласите друга, и он станет платящим клиентом, вы получите 5% скидку. За подробностями пишите в ",
-    "referral_discord": "Telegram"
+    "referral_discord": "Telegram",
+    "db_transcribe_enable_diarization_tooltip": "Включите диаризацию, чтобы различать дикторов.",
+    "db_transcribe_enable_diarization": "Включить разделение на спикеров",
+    "db_transcribe_diarization_settings": "Настройки диаризации",
+    "db_transcribe_diarization_general": "Общая",
+    "db_transcribe_diarization_telephonic": "Телефонный разговор",
+    "db_transcribe_diarization_meeting": "Встреча",
+    "db_transcribe_is_russian": "Запись на русском языке? (повышает точность)"
 }

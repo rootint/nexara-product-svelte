@@ -94,5 +94,12 @@
     "onboarding_step_indicator": "Step {currentStep} of {totalSteps}",
     "referral_title": "Referral",
     "referral_content": "If you refer a friend, and they become a paying customer, you are eligible for a 5% discount. For more details, write to @rnd_random in our ",
-    "referral_discord": "Discord channel"
+    "referral_discord": "Discord channel",
+    "db_transcribe_enable_diarization_tooltip": "Enable diarization to distinguish between speakers",
+    "db_transcribe_enable_diarization": "Enable diarization",
+    "db_transcribe_diarization_settings": "Diarization settings",
+    "db_transcribe_diarization_general": "General",
+    "db_transcribe_diarization_telephonic": "Telephonic",
+    "db_transcribe_diarization_meeting": "Meeting",
+    "db_transcribe_is_russian": "Is the recording in Russian? (improves accuracy)"
 }

@@ -442,7 +442,7 @@
 				<!-- State: Transcribing -->
 			{:else if isTranscribing}
 				<div class="transcribing-indicator">
-					<Loader2 class="spin-icon" size={48} color="#ccc" />
+					<div class="spin-wrapper"><Loader2 size={48} color="#ccc" /></div>
 					<p>{m.db_transcribe_progress()}</p>
 					{#if selectedFile}
 						<p class="file-name-progress" title={selectedFile.name}>{selectedFile.name}</p>
@@ -782,16 +782,6 @@
 		color: #fff;
 	}
 
-	.checkbox-label input[type='checkbox'] {
-		width: 18px;
-		height: 18px;
-		cursor: pointer;
-		accent-color: #fff; /* Tints the checkbox when checked */
-		background-color: rgba(255, 255, 255, 0.1);
-		border-radius: 4px;
-		border: 1px solid rgba(255, 255, 255, 0.2);
-	}
-
 	.diarization-options {
 		display: flex;
 		flex-direction: column;
@@ -830,8 +820,13 @@
 			transform: rotate(360deg);
 		}
 	}
-	.spin-icon {
+	.spin-wrapper {
 		animation: spin 1.5s linear infinite;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0;
+		margin: 0;
 	}
 
 	.transcribing-indicator p {
@@ -956,6 +951,21 @@
 	}
 
 	/* Responsive adjustments */
+	@media (max-width: 800px) {
+		.checkbox-label input[type='checkbox'] {
+			width: 44px;
+			height: 44px;
+			flex-shrink: 0;
+			border-radius: 8px;
+		}
+		.transcription-settings {
+			padding: 8px 0px;
+		}
+		.file-selected-info {
+			padding: 16px;
+			gap: 8px;
+		}
+	}
 	@media (max-width: 768px) {
 		/* Adjusted breakpoint */
 		.top-row {

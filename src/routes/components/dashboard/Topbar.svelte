@@ -1,6 +1,8 @@
 <script>
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import { tick } from 'svelte'; // Import tick for potential UI updates
+	import { sidebarOpen } from '$lib/stores/ui';
+	import { Menu } from 'lucide-svelte';
 
 	let copyText = `User ID : ${$dashboardStore.userId}`;
 	let copied = false;
@@ -36,13 +38,34 @@
 </script>
 
 <div class="top-bar">
-	<h3>{$dashboardStore.email}</h3>
-	<div class="user-id-container" on:click={copyUserId} title="Click to copy User ID">
+	<div class="top-bar-left">
+		<button
+			class="burger"
+			on:click={() => sidebarOpen.update((n) => !n)}
+			aria-label="Toggle sidebar"
+		>
+			<Menu color="white" />
+		</button>
+		<h3>{$dashboardStore.email}</h3>
+	</div>
+	<div
+		class="user-id-container"
+		on:click={copyUserId}
+		on:keydown={(e) => e.key === 'Enter' && copyUserId()}
+		role="button"
+		tabindex="0"
+		title="Click to copy User ID"
+	>
 		<p class="user-id">{copyText}</p>
 	</div>
 </div>
 
 <style>
+	.top-bar-left {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
 	h3 {
 		font-weight: 450;
 		font-size: 16px;
@@ -64,9 +87,6 @@
 	.user-id-container:hover {
 		background-color: rgba(250, 250, 250, 0.05); /* Slight background change on hover */
 	}
-	.user-id-container.copied .user-id {
-		color: #4ade80; /* Example: Green color when copied */
-	}
 	.top-bar {
 		/* Removed position: fixed */
 		/* Width is now 100% of the right-panel */
@@ -83,5 +103,29 @@
 		box-sizing: border-box;
 		z-index: 10;
 		flex-shrink: 0;
+	}
+
+	.burger {
+		display: none;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	@media (max-width: 800px) {
+		.burger {
+			display: block;
+			z-index: 101;
+		}
+
+		.top-bar {
+			flex-wrap: wrap;
+			row-gap: 16px;
+			justify-content: space-between;
+		}
+		.user-id-container {
+			flex-basis: 100%;
+		}
 	}
 </style>

@@ -5,6 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { ParaglideJS } from '@inlang/paraglide-sveltekit';
 	import { i18n } from '$lib/i18n';
+	import { sidebarOpen } from '$lib/stores/ui.js';
 
 	import '../styles.css';
 	import Parallax from '../components/Parallax.svelte';
@@ -34,6 +35,19 @@
 			}
 		}
 	});
+
+	function handleSidebarClick(event) {
+		if (window.innerWidth < 800) {
+			const target = event.target.closest('a, button');
+			if (target) {
+				sidebarOpen.set(false);
+			}
+		}
+	}
+
+	function closeSidebar() {
+		sidebarOpen.set(false);
+	}
 </script>
 
 <Onboarding />
@@ -42,9 +56,28 @@
 	<Parallax></Parallax>
 
 	<div class="app-container">
-		<div class="sidebar">
+		<div
+			class="sidebar"
+			class:open={$sidebarOpen}
+			on:click={handleSidebarClick}
+			on:keydown={(e) => e.key === 'Enter' && handleSidebarClick(e)}
+			role="button"
+			tabindex="0"
+		>
 			<Sidebar></Sidebar>
 		</div>
+
+		{#if $sidebarOpen}
+			<div
+				class="overlay"
+				on:click={closeSidebar}
+				on:keydown={(e) => e.key === 'Enter' && closeSidebar()}
+				role="button"
+				tabindex="0"
+				aria-label="Close sidebar"
+			></div>
+		{/if}
+
 		<div class="right-panel">
 			<!-- <div class="top-bar">Home</div> -->
 			<Topbar></Topbar>
@@ -100,5 +133,44 @@
 		overflow-y: auto; /* Allow ONLY this container to scroll */
 		flex-grow: 1; /* Take remaining vertical space in right-panel */
 		box-sizing: border-box;
+	}
+
+	.overlay {
+		display: none;
+	}
+
+	@media (max-width: 800px) {
+		.app-container {
+			grid-template-columns: 1fr;
+		}
+
+		.sidebar {
+			position: fixed;
+			top: 0;
+			left: -254px; /* Start off-screen */
+			height: 100vh;
+			z-index: 100;
+			transition: transform 0.3s ease-in-out;
+			transform: translateX(0);
+		}
+
+		.sidebar.open {
+			transform: translateX(254px); /* Slide in */
+		}
+
+		.overlay {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.2);
+			z-index: 99;
+		}
+
+		.main-content {
+			padding: 16px;
+		}
 	}
 </style>

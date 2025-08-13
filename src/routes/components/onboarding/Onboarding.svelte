@@ -162,4 +162,10 @@
 	button:hover {
 		opacity: 0.9;
 	}
+
+	@media (max-width: 800px) {
+		.overlay {
+			padding: 16px;
+		}
+	}
 </style>

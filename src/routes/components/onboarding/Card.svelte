@@ -15,4 +15,10 @@
 		min-width: 500px;
         max-width: 500px;
 	}
+	@media (max-width: 800px) {
+		.card {
+			min-width: 100%;
+			max-width: 100%;
+		}
+	}
 </style>

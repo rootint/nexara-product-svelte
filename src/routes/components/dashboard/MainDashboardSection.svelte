@@ -210,4 +210,14 @@
 			width: 100%;
 		}
 	}
+	@media (max-width: 800px) {
+		.card-cols {
+			flex-direction: column;
+			gap: 16px;
+		}
+		.card-col {
+			width: 100%;
+			gap: 16px;
+		}
+	}
 </style>

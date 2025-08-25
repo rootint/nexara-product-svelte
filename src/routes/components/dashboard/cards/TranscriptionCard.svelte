@@ -56,6 +56,7 @@
 	// Diarization State
 	let enableDiarization = false;
 	let diarizationSetting = 'telephonic'; // 'general', 'telephonic', 'meeting'
+	let numSpeakers = 0;
 	let isRussian = true;
 	// --- File Handling Functions ---
 
@@ -114,6 +115,7 @@
 		// Reset diarization settings
 		enableDiarization = false;
 		diarizationSetting = 'general';
+		numSpeakers = 0;
 	}
 
 	// --- Transcription Function ---
@@ -133,7 +135,8 @@
 				$dashboardStore.apiKey,
 				enableDiarization,
 				diarizationSetting,
-				isRussian
+				isRussian,
+				numSpeakers
 			);
 			console.log('--- Transcription Successful ---', result);
 
@@ -421,6 +424,20 @@
 									<option value="telephonic">{m.db_transcribe_diarization_telephonic()}</option>
 									<option value="meeting">{m.db_transcribe_diarization_meeting()}</option>
 								</select>
+								<div class="num-speakers-setting">
+									<label for="num-speakers-range">
+										{m.db_transcribe_num_speakers()}:
+										{numSpeakers === 0 ? 'Auto' : numSpeakers}
+									</label>
+									<input
+										id="num-speakers-range"
+										type="range"
+										min="0"
+										max="10"
+										step="1"
+										bind:value={numSpeakers}
+									/>
+								</div>
 							</div>
 						{/if}
 					</div>
@@ -788,6 +805,22 @@
 		gap: 8px;
 		width: 100%;
 		padding-left: 30px; /* Indent under checkbox */
+	}
+
+	.num-speakers-setting {
+		margin-top: 16px;
+	}
+
+	.num-speakers-setting label {
+		font-size: 13px;
+		color: #999;
+		margin-bottom: 2px;
+		display: block;
+	}
+
+	.num-speakers-setting input[type='range'] {
+		width: 100%;
+		cursor: pointer;
 	}
 
 	.diarization-options label {

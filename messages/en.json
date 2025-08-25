@@ -101,5 +101,6 @@
     "db_transcribe_diarization_general": "General",
     "db_transcribe_diarization_telephonic": "Telephonic",
     "db_transcribe_diarization_meeting": "Meeting",
-    "db_transcribe_is_russian": "Is the recording in Russian? (improves accuracy)"
+    "db_transcribe_is_russian": "Is the recording in Russian? (improves accuracy)",
+    "db_transcribe_num_speakers": "Number of speakers"
 }

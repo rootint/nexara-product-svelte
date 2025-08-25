@@ -100,5 +100,6 @@
     "db_transcribe_diarization_general": "Общая",
     "db_transcribe_diarization_telephonic": "Телефонный разговор",
     "db_transcribe_diarization_meeting": "Встреча",
-    "db_transcribe_is_russian": "Запись на русском языке? (повышает точность)"
+    "db_transcribe_is_russian": "Запись на русском языке? (повышает точность)",
+    "db_transcribe_num_speakers": "Количество спикеров"
 }

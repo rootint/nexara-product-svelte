@@ -12,6 +12,7 @@
 	import Sidebar from '../components/dashboard/Sidebar.svelte';
 	import Topbar from '../components/dashboard/Topbar.svelte';
 	import Onboarding from '../components/onboarding/Onboarding.svelte';
+    import { languageTag } from '$lib/paraglide/runtime.js';
 
 	onMount(async () => {
 		authStore.initialize();

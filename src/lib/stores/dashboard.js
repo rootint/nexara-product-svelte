@@ -21,38 +21,51 @@ function createDashboardStore() {
 	return {
 		subscribe,
 
-		async createApiKey(location) {
-			update((state) => ({ ...state, isLoading: true, error: null }));
-			const formData = new FormData();
+	async createApiKey(location) {
+		update((state) => ({ ...state, isLoading: true, error: null }));
+		const formData = new FormData();
 
-			// 2. Append your data field(s)
-			formData.append('location', location);
-			try {
-				const result = await api.makeRequest(
-					'/create_key',
-					{
-						method: 'POST'
-					},
-					null,
-					formData
-				);
-
-				update((state) => ({
-					...state,
-					apiKeys: result,
-					isLoading: false
-				}));
-
-				return result;
-			} catch (error) {
-				update((state) => ({
-					...state,
-					error: error.message,
-					isLoading: false
-				}));
-				throw error;
+		// Append location
+		formData.append('location', location);
+		
+		// Retrieve and append metrics data from localStorage
+		try {
+			const metricsData = localStorage.getItem('landing_page_metrics');
+			if (metricsData) {
+				const parsedMetrics = JSON.parse(metricsData);
+				formData.append('source', JSON.stringify(parsedMetrics));
+				console.log('Sending metrics data with API key creation:', parsedMetrics);
 			}
-		},
+		} catch (error) {
+			console.warn('Failed to retrieve or parse metrics data:', error);
+		}
+		
+		try {
+			const result = await api.makeRequest(
+				'/create_key',
+				{
+					method: 'POST'
+				},
+				null,
+				formData
+			);
+
+			update((state) => ({
+				...state,
+				apiKeys: result,
+				isLoading: false
+			}));
+
+			return result;
+		} catch (error) {
+			update((state) => ({
+				...state,
+				error: error.message,
+				isLoading: false
+			}));
+			throw error;
+		}
+	},
 
 		async changeApiKey() {
 			update((state) => ({ ...state, isLoading: true, error: null }));

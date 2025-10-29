@@ -58,6 +58,9 @@
 	let diarizationSetting = 'telephonic'; // 'general', 'telephonic', 'meeting'
 	let numSpeakers = 0;
 	let isRussian = true;
+	
+	// Model Selection State
+	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-1'
 	// --- File Handling Functions ---
 
 	function handleDragOver(event) {
@@ -116,6 +119,8 @@
 		enableDiarization = false;
 		diarizationSetting = 'general';
 		numSpeakers = 0;
+		// Reset model selection
+		selectedModel = 'whisper-1';
 	}
 
 	// --- Transcription Function ---
@@ -136,7 +141,8 @@
 				enableDiarization,
 				diarizationSetting,
 				isRussian,
-				numSpeakers
+				numSpeakers,
+				selectedModel
 			);
 			console.log('--- Transcription Successful ---', result);
 
@@ -405,16 +411,30 @@
 						</div>
 					</div>
 
-					<!-- Transcription Settings -->
-					<div class="transcription-settings">
-						<label class="checkbox-label">
-							<input type="checkbox" bind:checked={isRussian} />
-							{m.db_transcribe_is_russian()}
-						</label>
-						<label class="checkbox-label" title={m.db_transcribe_enable_diarization_tooltip()}>
-							<input type="checkbox" bind:checked={enableDiarization} />
-							{m.db_transcribe_enable_diarization()}
-						</label>
+				<!-- Transcription Settings -->
+				<div class="transcription-settings">
+					<div class="model-selection">
+						<div class="model-label">Model:</div>
+						<div class="radio-group">
+							<label class="radio-label">
+								<input type="radio" bind:group={selectedModel} value="whisper-1" />
+								<span>Nexara</span>
+							</label>
+							<label class="radio-label">
+								<input type="radio" bind:group={selectedModel} value="nexara-1" />
+								<span>Nexara Experimental</span>
+							</label>
+						</div>
+					</div>
+					
+					<label class="checkbox-label">
+						<input type="checkbox" bind:checked={isRussian} />
+						{m.db_transcribe_is_russian()}
+					</label>
+					<label class="checkbox-label" title={m.db_transcribe_enable_diarization_tooltip()}>
+						<input type="checkbox" bind:checked={enableDiarization} />
+						{m.db_transcribe_enable_diarization()}
+					</label>
 
 						{#if enableDiarization}
 							<div class="diarization-options">
@@ -784,6 +804,43 @@
 		padding: 16px 8px;
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.model-selection {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.model-label {
+		font-size: 14px;
+		color: #999;
+		font-weight: 500;
+	}
+
+	.radio-group {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	.radio-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+		font-size: 14px;
+		color: #ccc;
+		transition: color 0.2s ease;
+	}
+
+	.radio-label:hover {
+		color: #fff;
+	}
+
+	.radio-label input[type='radio'] {
+		cursor: pointer;
 	}
 
 	.checkbox-label {

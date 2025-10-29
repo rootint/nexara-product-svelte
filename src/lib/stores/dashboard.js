@@ -16,6 +16,7 @@ function createDashboardStore() {
 
 	// const api = new ApiClient('http://api-test.nexara.ru');
 	const api = new ApiClient('https://api.nexara.ru');
+  // const api = new ApiClient('http://42t.nexara.ru');
 	// const api = new ApiClient('http://localhost:8000');
 
 	return {
@@ -144,7 +145,7 @@ function createDashboardStore() {
 				}));
 			}
 		},
-		async transcribeFile(file, apiKey, enableDiarization, diarizationSetting, isRussian, numSpeakers) {
+		async transcribeFile(file, apiKey, enableDiarization, diarizationSetting, isRussian, numSpeakers, model = 'whisper-1') {
 			// Get the current API key directly from the store's value
 
 			if (!apiKey) {
@@ -155,7 +156,7 @@ function createDashboardStore() {
 			}
 
 			const formData = new FormData();
-			formData.append('model', 'whisper-1');
+			formData.append('model', model);
 			formData.append('file', file, file.name); // Ensure filename is included
 			formData.append('response_format', 'srt');
 			formData.append('is_dashboard', true);

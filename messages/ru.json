@@ -106,7 +106,7 @@
     "db_usage_title": "Статистика использования за 30 дней",
     "db_usage_loading": "Загрузка данных...",
     "db_usage_error": "Не удалось загрузить данные",
-    "db_usage_cached": "Кешировано",
+    "db_usage_cached": "Кешировано - обновление раз в час",
     "db_usage_cached_tooltip": "Данные из кеша из-за ограничения частоты запросов",
     "db_usage_minutes_label": "Использовано минут",
     "db_usage_minutes_subtitle": "Всего обработано аудио",

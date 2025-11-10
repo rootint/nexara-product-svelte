@@ -15,8 +15,8 @@ function createDashboardStore() {
 	});
 
 	// const api = new ApiClient('http://api-test.nexara.ru');
-	const api = new ApiClient('https://api.nexara.ru');
   // const api = new ApiClient('http://42t.nexara.ru');
+	const api = new ApiClient('https://api.nexara.ru');
 	// const api = new ApiClient('http://localhost:8000');
 
 	return {
@@ -180,6 +180,65 @@ function createDashboardStore() {
 			} catch (error) {
 				console.error('Transcription Store Error:', error);
 				// Re-throw the error so the component can catch it and display a message
+				throw error;
+			}
+		},
+
+		async getHistory(nDays = 30) {
+			const CACHE_KEY = 'nexara_usage_history';
+			const CACHE_TIMESTAMP_KEY = 'nexara_usage_history_timestamp';
+			
+			let currentApiKey;
+			subscribe(state => {
+				currentApiKey = state.apiKey;
+			})();
+			
+			if (!currentApiKey) {
+				throw new Error('API key not found');
+			}
+			
+			try {
+				const response = await fetch(`${api.baseUrl}/api/v1/get-history/${nDays}`, {
+					method: 'GET',
+					headers: {
+						Authorization: `Bearer ${currentApiKey}`
+					}
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+					localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+					return { data, fromCache: false };
+				} else if (response.status === 429) {
+					const cachedData = localStorage.getItem(CACHE_KEY);
+					const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+					
+					if (cachedData) {
+						return { 
+							data: JSON.parse(cachedData), 
+							fromCache: true,
+							cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
+						};
+					} else {
+						throw new Error('Rate limit exceeded and no cached data available');
+					}
+				} else {
+					throw new Error('Failed to fetch usage history');
+				}
+			} catch (error) {
+				const cachedData = localStorage.getItem(CACHE_KEY);
+				const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+				
+				if (cachedData) {
+					return { 
+						data: JSON.parse(cachedData), 
+						fromCache: true,
+						cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
+					};
+				}
+				
+				console.error('Usage History Error:', error);
 				throw error;
 			}
 		}

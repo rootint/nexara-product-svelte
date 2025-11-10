@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard, Calendar } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime';
@@ -12,6 +12,8 @@
 	const playgroundPathRegex = /^(\/en|\/ru)?\/playground\/?/;
 	// Regex to check for billing path with optional language prefix
 	const billingPathRegex = /^(\/en|\/ru)?\/billing\/?/;
+    // Regex to check for billing path with optional language prefix
+	const usagePathRegex = /^(\/en|\/ru)?\/usage\/?/;
 
 	async function handleLogout() {
 		try {
@@ -57,6 +59,15 @@
 				class:text-normal={!billingPathRegex.test($page.url.pathname)}
 			>
 				{m.db_sidebar_billing()}
+			</p>
+		</a>
+        <a href="/usage" class="section-button" class:selected={usagePathRegex.test($page.url.pathname)}>
+			<Calendar />
+			<p
+				class:text-selected={usagePathRegex.test($page.url.pathname)}
+				class:text-normal={!usagePathRegex.test($page.url.pathname)}
+			>
+				{m.db_sidebar_usage()}
 			</p>
 		</a>
 	</div>

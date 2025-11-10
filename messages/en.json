@@ -14,6 +14,7 @@
     "db_sidebar_main": "Home",
     "db_sidebar_playground": "Playground",
     "db_sidebar_billing": "Billing",
+    "db_sidebar_usage": "Usage",
     "db_sidebar_blog": "Discord",
     "db_sidebar_docs": "Docs",
     "db_sidebar_support": "Support",
@@ -102,5 +103,15 @@
     "db_transcribe_diarization_telephonic": "Telephonic",
     "db_transcribe_diarization_meeting": "Meeting",
     "db_transcribe_is_russian": "Is the recording in Russian? (improves accuracy)",
-    "db_transcribe_num_speakers": "Number of speakers"
+    "db_transcribe_num_speakers": "Number of speakers",
+    "db_usage_title": "Usage Statistics",
+    "db_usage_loading": "Loading usage data...",
+    "db_usage_error": "Failed to load usage data",
+    "db_usage_cached": "Cached",
+    "db_usage_cached_tooltip": "Data is cached due to rate limiting",
+    "db_usage_minutes_label": "Minutes Used",
+    "db_usage_minutes_subtitle": "Total audio processed",
+    "db_usage_money_label": "Money Spent",
+    "db_usage_money_subtitle": "Total cost incurred",
+    "db_usage_period": "Last {days} days"
 }

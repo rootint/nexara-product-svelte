@@ -14,6 +14,7 @@
     "db_sidebar_main": "Главная",
     "db_sidebar_playground": "Транскрибация",
     "db_sidebar_billing": "Биллинг",
+    "db_sidebar_usage": "Использование",
     "db_sidebar_blog": "Блог",
     "db_sidebar_docs": "Документация",
     "db_sidebar_support": "Поддержка",
@@ -101,5 +102,15 @@
     "db_transcribe_diarization_telephonic": "Телефонный разговор",
     "db_transcribe_diarization_meeting": "Встреча",
     "db_transcribe_is_russian": "Запись на русском языке? (повышает точность)",
-    "db_transcribe_num_speakers": "Количество спикеров"
+    "db_transcribe_num_speakers": "Количество спикеров",
+    "db_usage_title": "Статистика использования за 30 дней",
+    "db_usage_loading": "Загрузка данных...",
+    "db_usage_error": "Не удалось загрузить данные",
+    "db_usage_cached": "Кешировано",
+    "db_usage_cached_tooltip": "Данные из кеша из-за ограничения частоты запросов",
+    "db_usage_minutes_label": "Использовано минут",
+    "db_usage_minutes_subtitle": "Всего обработано аудио",
+    "db_usage_money_label": "Потрачено средств",
+    "db_usage_money_subtitle": "Общая стоимость",
+    "db_usage_period": "За последние {days} дней"
 }

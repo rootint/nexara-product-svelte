@@ -98,6 +98,21 @@
 </div>
 
 <style>
+    .btn-text {
+		color: #111;
+		font-size: 16px;
+	}
+	.buy-btn {
+		background-color: rgba(250, 250, 250);
+		backdrop-filter: blur(16px);
+		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+			skew(0deg, 0deg);
+		border-radius: 12px;
+		padding: 12px 20px;
+		border: none;
+		outline: none;
+		cursor: pointer;
+	}
 	.key-row {
 		margin-top: 24px;
 		display: flex;

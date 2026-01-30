@@ -42,13 +42,22 @@ function createAuthStore() {
 			}
 		},
 
-		// Register action
-		async register(email, password) {
+		async register(email, password, location) {
 			try {
-				await authApi.register(email, password);
-				// After registration, log the user in
+				let source = null;
+				try {
+					const metricsData = localStorage.getItem('landing_page_metrics');
+					if (metricsData) {
+						source = metricsData;
+					}
+				} catch (e) {}
+				await authApi.register(email, password, location, source);
 				return this.login(email, password);
 			} catch (error) {
+        console.log(error)
+				if (error.message === 'Too many requests') {
+					throw new Error('Слишком много запросов. Пожалуйста, попробуйте позже.');
+				}
 				throw new Error('Такой email уже используется');
 			}
 		},

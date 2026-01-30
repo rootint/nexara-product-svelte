@@ -112,5 +112,17 @@
     "db_usage_minutes_subtitle": "Всего обработано аудио",
     "db_usage_money_label": "Потрачено средств",
     "db_usage_money_subtitle": "Общая стоимость",
-    "db_usage_period": "За последние {days} дней"
+    "db_usage_period": "За последние {days} дней",
+    "db_sidebar_api_keys": "API Ключи",
+    "db_api_keys_title": "Ваши API ключи",
+    "db_api_keys_name": "Название",
+    "db_api_keys_key": "API Ключ",
+    "db_api_keys_created": "Создан",
+    "db_api_keys_empty": "У вас пока нет API ключей.",
+    "db_api_keys_loading": "Загрузка API ключей...",
+    "db_api_keys_create": "Создать ключ",
+    "db_api_keys_create_title": "Создать новый API ключ",
+    "db_api_keys_name_placeholder": "Введите название ключа",
+    "db_api_keys_cancel": "Отмена",
+    "db_api_keys_creating": "Создание..."
 }

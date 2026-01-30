@@ -113,5 +113,17 @@
     "db_usage_minutes_subtitle": "Total audio processed",
     "db_usage_money_label": "Money Spent",
     "db_usage_money_subtitle": "Total cost incurred",
-    "db_usage_period": "Last {days} days"
+    "db_usage_period": "Last {days} days",
+    "db_sidebar_api_keys": "API Keys",
+    "db_api_keys_title": "Your API Keys",
+    "db_api_keys_name": "Name",
+    "db_api_keys_key": "API Key",
+    "db_api_keys_created": "Created",
+    "db_api_keys_empty": "You don't have any API keys yet.",
+    "db_api_keys_loading": "Loading API keys...",
+    "db_api_keys_create": "Create Key",
+    "db_api_keys_create_title": "Create New API Key",
+    "db_api_keys_name_placeholder": "Enter key name",
+    "db_api_keys_cancel": "Cancel",
+    "db_api_keys_creating": "Creating..."
 }

@@ -30,17 +30,7 @@
 
 			// --- API Calls ---
 			// Wait for registration to complete successfully
-			await authStore.register(email, password);
-
-			// Only create API key if registration was successful
-			// authStore.register should ideally throw an error on failure
-			// which would be caught by the catch block below.
-			await dashboardStore.createApiKey(location); // location is 'ru' or 'row'
-
-			// --- Success Navigation (Optional) ---
-			// Clear form fields?
-			// email = ''; password = ''; confirmPassword = ''; location = '';
-			// await goto('/dashboard'); // Or wherever you want to redirect
+			await authStore.register(email, password, location);
 		} catch (e) {
 			// Check if error object has a specific detail field from API response
 			if (e.response && e.response.data && e.response.data.detail) {

@@ -3,7 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import { goto } from '$app/navigation';
-	import UsageCard from '../../components/dashboard/cards/UsageCard.svelte';
+	import ApiKeysListCard from '../../components/dashboard/cards/ApiKeysListCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
 
@@ -11,6 +11,7 @@
 		authStore.initialize();
 		if ($authStore.isAuthenticated) {
 			let loaded = await dashboardStore.loadDashboardData();
+            await dashboardStore.fetchApiKeys();
 			if (!loaded) {
 				authStore.logout();
 			}
@@ -25,8 +26,8 @@
 </script>
 
 <svelte:head>
-	<title>Nexara {m.db_sidebar_usage()}</title>
-	<meta name="description" content="Nexara" />
+	<title>Nexara {m.db_sidebar_api_keys()}</title>
+	<meta name="description" content="Nexara API Keys" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link
@@ -42,7 +43,7 @@
 {:else}
 	<div class="main-container">
 		<div class="card-cols">
-			<UsageCard />
+			<ApiKeysListCard />
 		</div>
 	</div>
 {/if}

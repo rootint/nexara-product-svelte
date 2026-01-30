@@ -1,5 +1,5 @@
-// const BASE_URL = 'http://localhost:8000';
-const BASE_URL = 'https://api.nexara.ru';
+const BASE_URL = 'http://localhost:8000';
+// const BASE_URL = 'https://api.nexara.ru';
 // const BASE_URL = 'http://api-test.nexara.ru';
 // const BASE_URL = 'http://42t.nexara.ru';
 
@@ -12,7 +12,12 @@ export class AuthApi {
 				...options.headers
 			}
 		});
-		if (!response.ok) throw new Error('Auth request failed');
+		if (response.status === 429) {
+			throw new Error('Too many requests');
+		}
+		if (!response.ok) {
+			throw new Error('Auth request failed');
+		}
 		return response.json();
 	}
 
@@ -31,9 +36,14 @@ export class AuthApi {
 		});
 	}
 
-	// Register endpoint wrapper
-	async register(email, password) {
-		return this.makeAuthRequest('/auth/register', {
+	async register(email, password, location, source) {
+		const params = new URLSearchParams();
+		if (location) params.append('location', location);
+		if (source) params.append('source', source);
+		const queryString = params.toString();
+		const endpoint = `/auth/register${queryString ? `?${queryString}` : ''}`;
+
+		return this.makeAuthRequest(endpoint, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

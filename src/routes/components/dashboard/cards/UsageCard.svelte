@@ -2,6 +2,7 @@
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
+	import { onMount } from 'svelte';
 
 	let usageData = null;
 	let fromCache = false;
@@ -12,7 +13,7 @@
 
 	async function fetchHistory() {
 		if (hasFetched) return;
-		
+
 		try {
 			isLoading = true;
 			error = null;
@@ -28,9 +29,13 @@
 		}
 	}
 
-	$: if ($dashboardStore.apiKey && !hasFetched) {
+	$: if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0 && !hasFetched) {
 		fetchHistory();
 	}
+
+	onMount(async () => {
+		await fetchHistory();
+	});
 </script>
 
 <div class="card">
@@ -52,7 +57,7 @@
 			<div class="stat-item">
 				<p class="stat-label">{m.db_usage_minutes_label()}</p>
 				<h2 class="stat-value">
-					{usageData.minutes_used.toLocaleString(languageTag() === 'ru' ? 'ru-RU' : 'en-GB', {
+					{usageData.total_minutes.toLocaleString(languageTag() === 'ru' ? 'ru-RU' : 'en-GB', {
 						minimumFractionDigits: 2,
 						maximumFractionDigits: 2
 					})}
@@ -66,12 +71,12 @@
 				<p class="stat-label">{m.db_usage_money_label()}</p>
 				<h2 class="stat-value">
 					{#if usageData.currency === 'RUB'}
-						{usageData.money_spent.toLocaleString('ru-RU', {
+						{usageData.total_cost.toLocaleString('ru-RU', {
 							minimumFractionDigits: 2,
 							maximumFractionDigits: 2
 						})} ₽
 					{:else}
-						€{usageData.money_spent.toLocaleString('en-GB', {
+						€{usageData.total_cost.toLocaleString('en-GB', {
 							minimumFractionDigits: 2,
 							maximumFractionDigits: 2
 						})}
@@ -81,10 +86,10 @@
 			</div>
 		</div>
 
-        {#if fromCache && cachedAt}
-            <div class="period-info">
-                <p>{m.db_usage_cached()}</p>
-            </div>
+		{#if fromCache && cachedAt}
+			<div class="period-info">
+				<p>{m.db_usage_cached()}</p>
+			</div>
 		{/if}
 	{/if}
 </div>
@@ -177,8 +182,8 @@
 	.period-info {
 		padding-top: 16px;
 		border-top: 1px solid rgba(250, 250, 250, 0.11);
-        width: 100%;
-        display: flex;
+		width: 100%;
+		display: flex;
 	}
 
 	.period-info p {
@@ -200,4 +205,3 @@
 		}
 	}
 </style>
-

@@ -11,62 +11,67 @@ function createDashboardStore() {
 		credits: 0,
 		isLoading: false,
 		location: null,
-		error: null
+		error: null,
+		apiKeys: [],
+		apiKeysLoading: false,
+		apiKeysError: null,
+		dataLoaded: false
 	});
 
 	// const api = new ApiClient('http://api-test.nexara.ru');
-  // const api = new ApiClient('http://42t.nexara.ru');
-	// const api = new ApiClient('https://api.nexara.ru');
-	const api = new ApiClient('http://localhost:8000');
+	// const api = new ApiClient('http://42t.nexara.ru');
+	const api = new ApiClient('https://api.nexara.ru');
+	// const api = new ApiClient('http://localhost:8000');
 
 	return {
 		subscribe,
 
-	async createApiKey(location) {
-		update((state) => ({ ...state, isLoading: true, error: null }));
-		const formData = new FormData();
+		async createApiKey(location, name) {
+			update((state) => ({ ...state, apiKeysLoading: true, apiKeysError: null }));
+			const formData = new FormData();
 
-		// Append location
-		formData.append('location', location);
-		
-		// Retrieve and append metrics data from localStorage
-		try {
-			const metricsData = localStorage.getItem('landing_page_metrics');
-			if (metricsData) {
-				const parsedMetrics = JSON.parse(metricsData);
-				formData.append('source', JSON.stringify(parsedMetrics));
-				console.log('Sending metrics data with API key creation:', parsedMetrics);
+			formData.append('location', location);
+			if (name) {
+				formData.append('name', name);
 			}
-		} catch (error) {
-			console.warn('Failed to retrieve or parse metrics data:', error);
-		}
-		
-		try {
-			const result = await api.makeRequest(
-				'/create_key',
-				{
-					method: 'POST'
-				},
-				null,
-				formData
-			);
 
-			update((state) => ({
-				...state,
-				apiKeys: result,
-				isLoading: false
-			}));
+			try {
+				const metricsData = localStorage.getItem('landing_page_metrics');
+				if (metricsData) {
+					const parsedMetrics = JSON.parse(metricsData);
+					formData.append('source', JSON.stringify(parsedMetrics));
+					console.log('Sending metrics data with API key creation:', parsedMetrics);
+				}
+			} catch (error) {
+				console.warn('Failed to retrieve or parse metrics data:', error);
+			}
 
-			return result;
-		} catch (error) {
-			update((state) => ({
-				...state,
-				error: error.message,
-				isLoading: false
-			}));
-			throw error;
-		}
-	},
+			try {
+				const result = await api.makeRequest(
+					'/create_key',
+					{
+						method: 'POST'
+					},
+					null,
+					formData
+				);
+
+				update((state) => ({
+					...state,
+					apiKeys: result.api_keys || result,
+					apiKeysLoading: false
+				}));
+
+				return result;
+			} catch (error) {
+				update((state) => ({
+					...state,
+					apiKeysError: error.message,
+					apiKeysLoading: false
+				}));
+				throw error;
+			}
+		},
 
 		async changeApiKey() {
 			update((state) => ({ ...state, isLoading: true, error: null }));
@@ -108,8 +113,12 @@ function createDashboardStore() {
 					credits: result.credits,
 					userId: result.user_id,
 					location: result.location,
+					apiKeys: result.api_keys || [],
 					isLoading: false,
-					error: null
+					error: null,
+					apiKeysLoading: false,
+					apiKeysError: null,
+					dataLoaded: true
 				});
 				return true;
 			} catch (error) {
@@ -117,7 +126,8 @@ function createDashboardStore() {
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false
+					isLoading: false,
+					dataLoaded: false
 				}));
 				return false;
 			}
@@ -145,7 +155,15 @@ function createDashboardStore() {
 				}));
 			}
 		},
-		async transcribeFile(file, apiKey, enableDiarization, diarizationSetting, isRussian, numSpeakers, model = 'whisper-1') {
+		async transcribeFile(
+			file,
+			apiKey,
+			enableDiarization,
+			diarizationSetting,
+			isRussian,
+			numSpeakers,
+			model = 'whisper-1'
+		) {
 			// Get the current API key directly from the store's value
 
 			if (!apiKey) {
@@ -163,6 +181,7 @@ function createDashboardStore() {
 			formData.append('task', enableDiarization ? 'diarize' : 'transcribe');
 			formData.append('diarization_setting', diarizationSetting);
 			formData.append('language', isRussian ? 'ru' : '');
+			console.log(formData);
 			if (numSpeakers > 0) {
 				formData.append('num_speakers', numSpeakers);
 			}
@@ -184,24 +203,66 @@ function createDashboardStore() {
 			}
 		},
 
+		async deleteApiKey(keyId) {
+			update((state) => ({ ...state, apiKeysLoading: true, apiKeysError: null }));
+
+			const token = localStorage.getItem('auth_token');
+			if (!token) {
+				update((state) => ({
+					...state,
+					apiKeysError: 'Auth token not found',
+					apiKeysLoading: false
+				}));
+				throw new Error('Auth token not found');
+			}
+
+			try {
+				const formData = new FormData();
+				formData.append('key_id', keyId);
+
+				const response = await fetch(`${api.baseUrl}/delete_key`, {
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`
+					},
+					body: formData
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to delete API key');
+				}
+
+				update((state) => ({
+					...state,
+					apiKeys: state.apiKeys.filter((key) => key.id !== keyId),
+					apiKeysLoading: false
+				}));
+
+				return true;
+			} catch (error) {
+				update((state) => ({
+					...state,
+					apiKeysError: error.message,
+					apiKeysLoading: false
+				}));
+				throw error;
+			}
+		},
+
 		async getHistory(nDays = 30) {
 			const CACHE_KEY = 'nexara_usage_history';
 			const CACHE_TIMESTAMP_KEY = 'nexara_usage_history_timestamp';
-			
-			let currentApiKey;
-			subscribe(state => {
-				currentApiKey = state.apiKey;
-			})();
-			
-			if (!currentApiKey) {
-				throw new Error('API key not found');
+
+			const token = localStorage.getItem('auth_token');
+			if (!token) {
+				throw new Error('Auth token not found');
 			}
-			
+
 			try {
-				const response = await fetch(`${api.baseUrl}/api/v1/get-history/${nDays}`, {
+				const response = await fetch(`${api.baseUrl}/get_history/${nDays}`, {
 					method: 'GET',
 					headers: {
-						Authorization: `Bearer ${currentApiKey}`
+						Authorization: `Bearer ${token}`
 					}
 				});
 
@@ -213,10 +274,10 @@ function createDashboardStore() {
 				} else if (response.status === 429) {
 					const cachedData = localStorage.getItem(CACHE_KEY);
 					const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-					
+
 					if (cachedData) {
-						return { 
-							data: JSON.parse(cachedData), 
+						return {
+							data: JSON.parse(cachedData),
 							fromCache: true,
 							cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
 						};
@@ -229,15 +290,15 @@ function createDashboardStore() {
 			} catch (error) {
 				const cachedData = localStorage.getItem(CACHE_KEY);
 				const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-				
+
 				if (cachedData) {
-					return { 
-						data: JSON.parse(cachedData), 
+					return {
+						data: JSON.parse(cachedData),
 						fromCache: true,
 						cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
 					};
 				}
-				
+
 				console.error('Usage History Error:', error);
 				throw error;
 			}

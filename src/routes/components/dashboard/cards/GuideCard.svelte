@@ -13,7 +13,7 @@
 	let isCurlCopied = false;
 	let isPythonCopied = false; // Add state for python code copy
 
-	$: apiKey = $dashboardStore.apiKey || 'YOUR_API_KEY'; // Reactive API key
+	$: apiKey = $dashboardStore.apiKeys?.[0]?.api_key || 'YOUR_API_KEY';
 
 	$: pythonCode = `import requests
 
@@ -105,8 +105,8 @@ with open(file_path, "rb") as audio_file:
 				<pre><code
 						>curl --request POST \
   --url https://api.nexara.ru/api/v1/audio/transcriptions \
-  --header 'Authorization: Bearer {$dashboardStore.apiKey
-							? $dashboardStore.apiKey.slice(0, 5) + '••••••••••••••••••••••••'
+  --header 'Authorization: Bearer {apiKey !== 'YOUR_API_KEY'
+							? apiKey.slice(0, 5) + '••••••••••••••••••••••••'
 							: 'YOUR_API_KEY'}' \
   --header 'Content-Type: multipart/form-data'</code
 					></pre>

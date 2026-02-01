@@ -103,6 +103,8 @@
     "db_transcribe_diarization_meeting": "Встреча",
     "db_transcribe_is_russian": "Запись на русском языке? (повышает точность)",
     "db_transcribe_num_speakers": "Количество спикеров",
+    "db_transcribe_api_key_label": "API Ключ:",
+    "db_transcribe_model_label": "Модель:",
     "db_usage_title": "Статистика использования за 30 дней",
     "db_usage_loading": "Загрузка данных...",
     "db_usage_error": "Не удалось загрузить данные",
@@ -124,5 +126,11 @@
     "db_api_keys_create_title": "Создать новый API ключ",
     "db_api_keys_name_placeholder": "Введите название ключа",
     "db_api_keys_cancel": "Отмена",
-    "db_api_keys_creating": "Создание..."
+    "db_api_keys_creating": "Создание...",
+    "db_api_keys_usage": "Использование (30д)",
+    "db_api_keys_minutes_suffix": "мин",
+    "db_api_keys_delete": "Удалить",
+    "db_api_keys_delete_title": "Удаление API ключа",
+    "db_api_keys_delete_confirm": "Вы уверены, что хотите удалить API ключ \"{keyName}\"? Это действие нельзя отменить.",
+    "db_api_keys_deleting": "Удаление..."
 }

@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { goto } from '$app/navigation';
 	import {
 		Check,
 		Copy,
@@ -23,6 +22,7 @@
 	import TranscriptionMainCard from './cards/TranscriptionMainCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
+	import UsageCard from './cards/UsageCard.svelte';
 
 	let isKeyShown = false;
 	let isKeyCopied = false;
@@ -45,119 +45,14 @@
 					(inputCredits / ($dashboardStore.personalPrice * 60)).toFixed(0) +
 					' мин транскрибации';
 
-	onMount(async () => {
+	onMount(() => {
 		payments = new cp.CloudPayments({
 			language: languageTag() === 'ru' ? 'ru-RU' : 'en-US'
 		});
-		authStore.initialize();
-		if ($authStore.isAuthenticated) {
-			let loaded = await dashboardStore.loadDashboardData();
-			if (!loaded) {
-				authStore.logout();
-			}
-		} else {
-			if (languageTag() === 'ru') {
-				goto('/login');
-			} else {
-				goto('/en/login');
-			}
-		}
 	});
-
-	function toggleShowKey() {
-		isKeyShown = !isKeyShown;
-	}
-
-	async function handleCreateApiKey() {
-		try {
-			await dashboardStore.createApiKey();
-			await dashboardStore.loadDashboardData();
-		} catch (error) {
-			// Handle UI-specific error presentation
-			console.error('Failed to create API key:', error);
-		}
-	}
-
-	async function handleCopyKey() {
-		if ($dashboardStore.apiKey) {
-			try {
-				await navigator.clipboard.writeText($dashboardStore.apiKey);
-				// Optional: Show a success message or change the button text briefly
-				console.log('API Key copied to clipboard!');
-				isKeyCopied = true;
-			} catch (err) {
-				console.error('Failed to copy API Key:', err);
-			}
-		}
-	}
-
-	async function handleChangeKey() {
-		// Use the browser's built-in confirm() function for a simple OK/Cancel dialog.
-		const confirmChange = confirm(
-			'Вы уверены, что хотите изменить API-ключ? Это действие необратимо.'
-		); // Russian prompt
-
-		if (confirmChange) {
-			// User clicked "OK"
-			if ($dashboardStore.apiKey) {
-				// This check is likely redundant now, but keeps original logic
-				try {
-					await dashboardStore.changeApiKey();
-					await dashboardStore.loadDashboardData();
-				} catch (error) {
-					// Handle UI-specific error presentation
-					console.error('Failed to change API key:', error);
-					// Consider showing a more user-friendly error message in the UI.
-					alert('Ошибка при смене API-ключа. Пожалуйста, попробуйте еще раз.'); // Russian error alert.
-				}
-			}
-		} else {
-			// User clicked "Cancel" - do nothing
-			console.log('API key change cancelled.');
-		}
-	}
-
-	async function handleGetCredits() {
-		try {
-			if (inputCredits >= 200) {
-				payments.pay(
-					'auth', // или 'charge'
-					{
-						//options
-						publicId: 'pk_a0f7faa18429d6e52516616de8747', //id из личного кабинета
-						description: 'Пополнение баланса на nexara.ru', //назначение
-						amount: Number(inputCredits), //сумма
-						currency: 'RUB', //валюта
-						skin: 'modern', //дизайн виджета (необязательно)
-						data: {
-							userId: $dashboardStore.userId
-						}
-					},
-					{
-						onSuccess: function (options) {
-							console.log('success');
-						},
-						onFail: function (reason, options) {
-							// fail
-							console.log('fail');
-						},
-						onComplete: async function (paymentResult, options) {
-							console.log('complete');
-							await dashboardStore.loadDashboardData();
-						}
-					}
-				);
-			} else {
-				throw Error('Минимальная сумма пополнения - 200 рублей');
-			}
-		} catch (error) {
-			// Handle UI-specific error presentation
-			console.error(error);
-		}
-	}
 </script>
 
-{#if !$authStore.isAuthenticated}
+{#if $dashboardStore.isLoading}
 	<div class="main-container">
 		<div class="card-grid">Загрузка...</div>
 	</div>
@@ -169,7 +64,8 @@
 					<BillingMainCard />
 				</div>
 				<div id="onboarding-apikey">
-					<ApiKeyCard />
+					<!-- <ApiKeyCard /> -->
+					<UsageCard />
 				</div>
 				<div id="onboarding-transcription">
 					<TranscriptionMainCard />

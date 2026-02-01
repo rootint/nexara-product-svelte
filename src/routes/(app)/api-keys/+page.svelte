@@ -1,28 +1,35 @@
 <script>
-	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { goto } from '$app/navigation';
 	import ApiKeysListCard from '../../components/dashboard/cards/ApiKeysListCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
-	import { languageTag } from '$lib/paraglide/runtime.js';
+	import { onMount } from 'svelte';
+
+	let historyData = null;
+	let historyLoading = false;
+	let historyFromCache = false;
 
 	onMount(async () => {
-		authStore.initialize();
-		if ($authStore.isAuthenticated) {
-			let loaded = await dashboardStore.loadDashboardData();
-            await dashboardStore.fetchApiKeys();
-			if (!loaded) {
-				authStore.logout();
-			}
-		} else {
-			if (languageTag() === 'ru') {
-				goto('/login');
-			} else {
-				goto('/en/login');
-			}
+		if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0) {
+			await fetchHistory();
 		}
 	});
+
+	$: if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0 && !historyData && !historyLoading) {
+		fetchHistory();
+	}
+
+	async function fetchHistory() {
+		historyLoading = true;
+		try {
+			const result = await dashboardStore.getHistory(30);
+			historyData = result.data;
+			historyFromCache = result.fromCache;
+		} catch (error) {
+			console.error('Failed to fetch history:', error);
+		} finally {
+			historyLoading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -36,14 +43,14 @@
 	/>
 </svelte:head>
 
-{#if !$authStore.isAuthenticated}
+{#if $dashboardStore.isLoading}
 	<div class="main-container">
 		<div class="card-cols">Loading...</div>
 	</div>
 {:else}
 	<div class="main-container">
 		<div class="card-cols">
-			<ApiKeysListCard />
+			<ApiKeysListCard {historyData} {historyLoading} />
 		</div>
 	</div>
 {/if}

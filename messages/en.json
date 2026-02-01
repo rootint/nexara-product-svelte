@@ -104,6 +104,8 @@
     "db_transcribe_diarization_meeting": "Meeting",
     "db_transcribe_is_russian": "Is the recording in Russian? (improves accuracy)",
     "db_transcribe_num_speakers": "Number of speakers",
+    "db_transcribe_api_key_label": "API Key:",
+    "db_transcribe_model_label": "Model:",
     "db_usage_title": "Usage Statistics",
     "db_usage_loading": "Loading usage data...",
     "db_usage_error": "Failed to load usage data",
@@ -125,5 +127,11 @@
     "db_api_keys_create_title": "Create New API Key",
     "db_api_keys_name_placeholder": "Enter key name",
     "db_api_keys_cancel": "Cancel",
-    "db_api_keys_creating": "Creating..."
+    "db_api_keys_creating": "Creating...",
+    "db_api_keys_usage": "Usage (30d)",
+    "db_api_keys_minutes_suffix": "min",
+    "db_api_keys_delete": "Delete",
+    "db_api_keys_delete_title": "Delete API Key",
+    "db_api_keys_delete_confirm": "Are you sure you want to delete the API key \"{keyName}\"? This action cannot be undone.",
+    "db_api_keys_deleting": "Deleting..."
 }

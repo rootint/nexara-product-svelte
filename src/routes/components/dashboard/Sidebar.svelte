@@ -63,15 +63,6 @@
 				{m.db_sidebar_billing()}
 			</p>
 		</a>
-        <a href="/usage" class="section-button" class:selected={usagePathRegex.test($page.url.pathname)}>
-			<Calendar />
-			<p
-				class:text-selected={usagePathRegex.test($page.url.pathname)}
-				class:text-normal={!usagePathRegex.test($page.url.pathname)}
-			>
-				{m.db_sidebar_usage()}
-			</p>
-		</a>
 		<a href="/api-keys" class="section-button" class:selected={apiKeysPathRegex.test($page.url.pathname)}>
 			<Key />
 			<p

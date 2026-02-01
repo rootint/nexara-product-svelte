@@ -1,26 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { dashboardStore } from '$lib/stores/dashboard';
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import Sidebar from '../components/dashboard/Sidebar.svelte';
 	import MainDashboardSection from '../components/dashboard/MainDashboardSection.svelte';
-	// import * as m from '$lib/paraglide/messages.js';
-	import { languageTag } from '$lib/paraglide/runtime.js';
 
 	function storeQueryParamsInLocalStorage() {
 		if (browser && $page?.url?.searchParams) {
 			const queryParams = {};
 			const searchParams = $page.url.searchParams;
 			
-			// Convert URLSearchParams to a regular object
 			for (const [key, value] of searchParams.entries()) {
 				queryParams[key] = value;
 			}
 			
-			// Only store if there are query parameters
 			if (Object.keys(queryParams).length > 0) {
 				const timestamp = new Date().toISOString();
 				const paramsWithMetadata = {
@@ -35,24 +27,8 @@
 		}
 	}
 
-	onMount(async () => {
-		// Store query parameters from landing page for metrics
+	onMount(() => {
 		storeQueryParamsInLocalStorage();
-		
-		authStore.initialize();
-        console.log('authStore.isAuthenticated', $authStore.isAuthenticated);
-		if ($authStore.isAuthenticated) {
-			let loaded = await dashboardStore.loadDashboardData();
-			if (!loaded) {
-				authStore.logout();
-			}
-		} else {
-			if (languageTag() === 'ru') {
-				goto('/login');
-			} else {
-				goto('/en/login');
-			}
-		}
 	});
 </script>
 

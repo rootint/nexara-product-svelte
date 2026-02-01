@@ -7,15 +7,23 @@
 		Loader2,
 		AlertTriangle,
 		X,
-		Download, // Import Download icon
-		Copy // Import Copy icon
+		Download,
+		Copy,
+		ChevronDown
 	} from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
 	let selectedFile = null;
 	let selectedFileName = null;
 	let isDragging = false;
-	let fileInputRef = null; // Reference to the hidden file input
+	let fileInputRef = null;
+	
+	let selectedApiKeyId = null;
+	$: if ($dashboardStore.apiKeys?.length > 0 && !selectedApiKeyId) {
+		selectedApiKeyId = $dashboardStore.apiKeys[0].id;
+	}
+	$: selectedApiKey = $dashboardStore.apiKeys?.find(k => k.id === selectedApiKeyId);
+	$: hasValidApiKey = $dashboardStore.apiKeys?.length > 0;
 	const acceptedMimeTypes = [
 		'audio/wav',
 		'audio/x-wav',
@@ -125,19 +133,22 @@
 
 	// --- Transcription Function ---
 	async function transcribeFile() {
-		if (!selectedFile || isTranscribing || !$dashboardStore.apiKey) return;
+        console.log(selectedApiKey);
+        console.log(selectedApiKey?.api_key);
+		const apiKeyToUse = selectedApiKey?.api_key || $dashboardStore.apiKey;
+		if (!selectedFile || isTranscribing || !apiKeyToUse) return;
 
 		console.log('--- Starting Transcription ---');
 		isTranscribing = true;
 		transcriptionResult = null;
 		transcriptionError = null;
 		parsedSubtitles = null;
-		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
+		copyButtonText = m.db_transcribe_copy();
 
 		try {
 			const result = await dashboardStore.transcribeFile(
 				selectedFile,
-				$dashboardStore.apiKey,
+				apiKeyToUse,
 				enableDiarization,
 				diarizationSetting,
 				isRussian,
@@ -355,8 +366,7 @@
 		{/if}
 	</div>
 
-	{#if !$dashboardStore.apiKey}
-		<!-- Message if API Key is missing -->
+	{#if !hasValidApiKey}
 		<div class="api-key-required">
 			<AlertTriangle size={32} color="#aaa" />
 			<p>{m.db_transcribe_api_key_needed()}</p>
@@ -411,10 +421,24 @@
 						</div>
 					</div>
 
-				<!-- Transcription Settings -->
+				{#if $dashboardStore.apiKeys?.length > 1}
+					<div class="api-key-selection">
+						<label for="api-key-select">{m.db_transcribe_api_key_label()}</label>
+						<div class="select-wrapper">
+							<select id="api-key-select" bind:value={selectedApiKeyId}>
+								{#each $dashboardStore.apiKeys as key (key.id)}
+								<option value={key.id}>
+									{key.name || 'Unnamed'} ({key.api_key ? key.api_key.slice(0, 7) + '••••' : '...'})
+								</option>
+								{/each}
+							</select>
+							<ChevronDown size={16} class="select-icon" />
+						</div>
+					</div>
+				{/if}
 				<div class="transcription-settings">
 					<div class="model-selection">
-						<div class="model-label">Model:</div>
+						<div class="model-label">{m.db_transcribe_model_label()}</div>
 						<div class="radio-group">
 							<label class="radio-label">
 								<input type="radio" bind:group={selectedModel} value="whisper-1" />
@@ -792,6 +816,57 @@
 	.clear-file-btn:hover {
 		background: rgba(255, 255, 255, 0.2);
 		color: #fff;
+	}
+
+	.api-key-selection {
+		width: 100%;
+		max-width: 450px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.api-key-selection label {
+		font-size: 14px;
+		color: #999;
+		font-weight: 500;
+	}
+
+	.select-wrapper {
+		position: relative;
+		width: 100%;
+	}
+
+	.select-wrapper select {
+		width: 100%;
+		padding: 10px 36px 10px 12px;
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		background: rgba(255, 255, 255, 0.05);
+		color: #eee;
+		font-size: 14px;
+		cursor: pointer;
+		appearance: none;
+		transition: border-color 0.2s ease, background-color 0.2s ease;
+	}
+
+	.select-wrapper select:hover {
+		border-color: rgba(255, 255, 255, 0.3);
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	.select-wrapper select:focus {
+		outline: none;
+		border-color: rgba(255, 255, 255, 0.4);
+	}
+
+	.select-wrapper :global(.select-icon) {
+		position: absolute;
+		right: 12px;
+		top: 50%;
+		transform: translateY(-50%);
+		pointer-events: none;
+		color: #888;
 	}
 
 	.transcription-settings {

@@ -1,27 +1,9 @@
 <script>
-	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { goto } from '$app/navigation';
 	import BalanceCard from '../../components/dashboard/cards/BalanceCard.svelte';
+	import UsageCard from '../../components/dashboard/cards/UsageCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
-
-	onMount(async () => {
-		authStore.initialize();
-		if ($authStore.isAuthenticated) {
-			let loaded = await dashboardStore.loadDashboardData();
-			if (!loaded) {
-				authStore.logout(); // Consider redirecting after logout as well
-			}
-		} else {
-			if (languageTag() === 'ru') {
-				goto('/login');
-			} else {
-				goto('/en/login');
-			}
-		}
-	});
 </script>
 
 <svelte:head>
@@ -35,7 +17,7 @@
 	/>
 </svelte:head>
 
-{#if !$authStore.isAuthenticated}
+{#if $dashboardStore.isLoading}
 	<div class="main-container">
 		<div class="card-cols">Loading...</div>
 	</div>
@@ -44,6 +26,7 @@
 		<div class="card-cols">
 			<div class="card-col">
 				<BalanceCard />
+				<UsageCard />
 			</div>
 			<div class="card-col">
 				<div class="card referral-card">

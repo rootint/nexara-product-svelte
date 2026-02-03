@@ -11,6 +11,8 @@
     "auth_russia_dropdown": "Рубли",
     "auth_row_dropdown": "Евро",
     "auth_have_account": "Уже есть аккаунт?",
+    "auth_privacy_consent_prefix": "Я согласен с",
+    "auth_privacy_consent_link": "политикой конфиденциальности",
     "db_sidebar_main": "Главная",
     "db_sidebar_playground": "Транскрибация",
     "db_sidebar_billing": "Биллинг",

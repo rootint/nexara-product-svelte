@@ -10,8 +10,8 @@
 	let password = '';
 	let confirmPassword = '';
 	let error = '';
-	// Initialize location to match the placeholder option value
-	let location = ''; // <-- Changed initial value
+	let privacyConsent = false;
+	let location = '';
 
 	async function handleSubmit() {
 		// Reset error on new submission
@@ -80,7 +80,13 @@
 			{#if error}
 				<p class="error">{error}</p>
 			{/if}
-			<button type="submit"><p class="btn-text">{m.auth_register_title()}</p></button>
+
+			<label class="consent-label">
+				<input type="checkbox" bind:checked={privacyConsent} />
+				<span>{m.auth_privacy_consent_prefix()} <a href="https://www.nexara.ru/personal" target="_blank" rel="noopener noreferrer">{m.auth_privacy_consent_link()}</a></span>
+			</label>
+
+			<button type="submit" disabled={!privacyConsent}><p class="btn-text">{m.auth_register_title()}</p></button>
 		</form>
 		<p class="register-text">{m.auth_have_account()} <a href="/login">{m.auth_login_title()}</a></p>
 	</div>
@@ -106,7 +112,33 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-top: 16px; /* Added margin */
+		margin-top: 16px;
+		transition: opacity 0.2s ease;
+	}
+	button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.consent-label {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 8px;
+		color: #aaa;
+		font-size: 14px;
+	}
+	.consent-label input[type='checkbox'] {
+		width: auto;
+		margin-bottom: 0;
+		cursor: pointer;
+		accent-color: #fff;
+	}
+	.consent-label a {
+		color: #fff;
+		text-decoration: underline;
+	}
+	.consent-label a:hover {
+		opacity: 0.8;
 	}
 	.btn-text {
 		margin-bottom: 0;

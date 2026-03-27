@@ -8,6 +8,7 @@ function createDashboardStore() {
 		apiKey: null,
 		userId: null,
 		personalPrice: null,
+		overdraft_limit: 0,
 		credits: 0,
 		isLoading: false,
 		location: null,
@@ -20,8 +21,8 @@ function createDashboardStore() {
 
 	// const api = new ApiClient('http://api-test.nexara.ru');
 	// const api = new ApiClient('http://42t.nexara.ru');
-	const api = new ApiClient('https://api.nexara.ru');
-	// const api = new ApiClient('http://localhost:8000');
+	// const api = new ApiClient('https://api.nexara.ru');
+	const api = new ApiClient('http://localhost:8000');
 
 	return {
 		subscribe,
@@ -108,6 +109,7 @@ function createDashboardStore() {
 				console.log('result', result);
 				set({
 					personalPrice: result.rate,
+					overdraft_limit: result.overdraft_limit ?? 0,
 					email: result.email,
 					apiKey: result.api_key,
 					credits: result.credits,

@@ -4,6 +4,18 @@
 	import UsageCard from '../../components/dashboard/cards/UsageCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
+
+	$: overdraftAmount = Number($dashboardStore.overdraft_limit ?? 0);
+	$: overdraftFormatted =
+		languageTag() === 'ru'
+			? `${overdraftAmount.toLocaleString('ru-RU', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})} ₽`
+			: `€${overdraftAmount.toLocaleString('en-GB', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}`;
 </script>
 
 <svelte:head>
@@ -29,6 +41,12 @@
 				<UsageCard />
 			</div>
 			<div class="card-col">
+				{#if overdraftAmount !== 0}
+					<div class="card referral-card">
+						<p class="card-title">{m.billing_overdraft_title()}</p>
+						<p>{m.billing_overdraft_body({ amount: overdraftFormatted })}</p>
+					</div>
+				{/if}
 				<div class="card referral-card">
 					<p class="card-title">{m.referral_title()}</p>
 					<p>
@@ -45,6 +63,12 @@
 					<p>
 						Обратите внимание, что если вы используете диаризацию, то каждая минута тарифицируется
 						как две.
+					</p>
+				</div>
+				<div class="card referral-card">
+					<p class="card-title">{m.billing_invoice_title()}</p>
+					<p>
+						{m.billing_invoice_before()}<a href="https://t.me/RND_RandoM">@RND_RandoM</a>.
 					</p>
 				</div>
 			</div>

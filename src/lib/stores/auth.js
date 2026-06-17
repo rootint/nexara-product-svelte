@@ -50,6 +50,10 @@ function createAuthStore() {
 			await authApi.resetPassword(token, password);
 		},
 
+		async changePassword(currentPassword, newPassword) {
+			await authApi.changePassword(currentPassword, newPassword);
+		},
+
 		async register(email, password, location) {
 			try {
 				let source = null;

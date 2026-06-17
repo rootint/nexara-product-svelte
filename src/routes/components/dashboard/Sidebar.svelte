@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard, Calendar, Key } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime';
@@ -16,6 +16,8 @@
 	const usagePathRegex = /^(\/en|\/ru)?\/usage\/?/;
 	// Regex to check for api-keys path with optional language prefix
 	const apiKeysPathRegex = /^(\/en|\/ru)?\/api-keys\/?/;
+	// Regex to check for settings path with optional language prefix
+	const settingsPathRegex = /^(\/en|\/ru)?\/settings\/?/;
 
 	async function handleLogout() {
 		try {
@@ -70,6 +72,15 @@
 				class:text-normal={!apiKeysPathRegex.test($page.url.pathname)}
 			>
 				{m.db_sidebar_api_keys()}
+			</p>
+		</a>
+		<a href="/settings" class="section-button" class:selected={settingsPathRegex.test($page.url.pathname)}>
+			<Settings />
+			<p
+				class:text-selected={settingsPathRegex.test($page.url.pathname)}
+				class:text-normal={!settingsPathRegex.test($page.url.pathname)}
+			>
+				Настройки
 			</p>
 		</a>
 	</div>

@@ -1,4 +1,7 @@
+import { ApiClient } from '$lib/api/client';
+
 // const BASE_URL = 'http://localhost:8000';
+const apiClient = new ApiClient(BASE_URL);
 const BASE_URL = 'https://api.nexara.ru';
 // const BASE_URL = 'http://api-test.nexara.ru';
 // const BASE_URL = 'http://42t.nexara.ru';
@@ -44,6 +47,13 @@ export class AuthApi {
 			},
 			body: JSON.stringify({ email })
 		});
+	}
+
+	async changePassword(currentPassword, newPassword) {
+		const form = new FormData();
+		form.append('current_password', currentPassword);
+		form.append('new_password', newPassword);
+		return apiClient.makeRequest('/change_password', { method: 'POST' }, null, form);
 	}
 
 	async resetPassword(token, password) {

@@ -1,8 +1,8 @@
 import { ApiClient } from '$lib/api/client';
 
 // const BASE_URL = 'http://localhost:8000';
-const apiClient = new ApiClient(BASE_URL);
 const BASE_URL = 'https://api.nexara.ru';
+const apiClient = new ApiClient(BASE_URL);
 // const BASE_URL = 'http://api-test.nexara.ru';
 // const BASE_URL = 'http://42t.nexara.ru';
 

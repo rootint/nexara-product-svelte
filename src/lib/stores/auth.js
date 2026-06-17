@@ -42,6 +42,14 @@ function createAuthStore() {
 			}
 		},
 
+		async forgotPassword(email) {
+			await authApi.forgotPassword(email);
+		},
+
+		async resetPassword(token, password) {
+			await authApi.resetPassword(token, password);
+		},
+
 		async register(email, password, location) {
 			try {
 				let source = null;

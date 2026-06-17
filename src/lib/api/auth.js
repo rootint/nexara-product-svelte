@@ -36,6 +36,26 @@ export class AuthApi {
 		});
 	}
 
+	async forgotPassword(email) {
+		return this.makeAuthRequest('/auth/forgot-password', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ email })
+		});
+	}
+
+	async resetPassword(token, password) {
+		return this.makeAuthRequest('/auth/reset-password', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ token, password })
+		});
+	}
+
 	async register(email, password, location, source) {
 		const params = new URLSearchParams();
 		if (location) params.append('location', location);

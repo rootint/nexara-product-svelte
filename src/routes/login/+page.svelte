@@ -10,6 +10,10 @@
 	let email = '';
 	let password = '';
 	let error = '';
+	let forgotMode = false;
+	let forgotEmail = '';
+	let forgotStatus = '';
+	let forgotLoading = false;
 
 	async function handleSubmit() {
 		try {
@@ -17,6 +21,19 @@
 			// Success - authStore will handle navigation
 		} catch (e) {
 			error = 'Неправильный логин или пароль';
+		}
+	}
+
+	async function handleForgotPassword() {
+		forgotLoading = true;
+		forgotStatus = '';
+		try {
+			await authStore.forgotPassword(forgotEmail);
+			forgotStatus = 'ok';
+		} catch (e) {
+			forgotStatus = 'error';
+		} finally {
+			forgotLoading = false;
 		}
 	}
 
@@ -48,29 +65,63 @@
 
 <section class="login">
 	<div class="card">
-		<h2>{m.auth_login_title()}</h2>
-		<form on:submit|preventDefault={handleSubmit}>
-			<p>Email</p>
-			<input type="email" id="email" bind:value={email} placeholder={m.auth_email_placeholder()} />
-			<p>{m.auth_password_label()}</p>
-			<input type="password" id="password" bind:value={password} placeholder="password" />
-			{#if error}
-				<p class="error">{error}</p>
+		{#if forgotMode}
+			<h2>Восстановление пароля</h2>
+			{#if forgotStatus === 'ok'}
+				<p class="hint">Если этот email зарегистрирован, мы отправили на него ссылку для сброса пароля.</p>
+				<button type="button" on:click={() => { forgotMode = false; forgotStatus = ''; }}>
+					<p class="btn-text">Вернуться ко входу</p>
+				</button>
+			{:else}
+				<form on:submit|preventDefault={handleForgotPassword}>
+					<p>Email</p>
+					<input type="email" bind:value={forgotEmail} placeholder={m.auth_email_placeholder()} required />
+					{#if forgotStatus === 'error'}
+						<p class="error">Произошла ошибка. Попробуйте позже.</p>
+					{/if}
+					<button type="submit" disabled={forgotLoading}>
+						<p class="btn-text">{forgotLoading ? 'Отправка...' : 'Отправить ссылку'}</p>
+					</button>
+				</form>
+				<p class="register-text">
+					<a href="/" on:click|preventDefault={() => { forgotMode = false; forgotStatus = ''; }}>Вернуться ко входу</a>
+				</p>
 			{/if}
-			<button type="submit"><p class="btn-text">{m.auth_login_title()}</p></button>
-			<!-- <MainButton text="Войти" ></MainButton> -->
-		</form>
-		<p class="register-text">
-			{m.auth_no_account()} <a href="/register">{m.auth_register_title()}</a>
-		</p>
+		{:else}
+			<h2>{m.auth_login_title()}</h2>
+			<form on:submit|preventDefault={handleSubmit}>
+				<p>Email</p>
+				<input type="email" id="email" bind:value={email} placeholder={m.auth_email_placeholder()} />
+				<p>{m.auth_password_label()}</p>
+				<input type="password" id="password" bind:value={password} placeholder="password" />
+				{#if error}
+					<p class="error">{error}</p>
+				{/if}
+				<button type="submit"><p class="btn-text">{m.auth_login_title()}</p></button>
+			</form>
+			<p class="forgot-text">
+				<a href="/" on:click|preventDefault={() => { forgotMode = true; forgotEmail = email; }}>Забыли пароль?</a>
+			</p>
+			<p class="register-text">
+				{m.auth_no_account()} <a href="/register">{m.auth_register_title()}</a>
+			</p>
+		{/if}
 	</div>
 </section>
 
 <style>
-	.register-text {
+	.register-text,
+	.forgot-text {
 		width: 100%;
 		text-align: center;
 		color: #777;
+	}
+	.forgot-text {
+		margin-bottom: 12px;
+	}
+	.hint {
+		color: #aaa;
+		margin-bottom: 24px;
 	}
 	a {
 		color: #aaa;

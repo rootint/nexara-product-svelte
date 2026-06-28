@@ -1,10 +1,10 @@
+import { env } from '$env/dynamic/public';
 import { ApiClient } from '$lib/api/client';
 
-// const BASE_URL = 'http://localhost:8000';
-const BASE_URL = 'https://api.nexara.ru';
+// Base URL is set per environment via PUBLIC_API_BASE_URL (see .env.example).
+// Falls back to prod so a missing/misconfigured var never points elsewhere.
+const BASE_URL = env.PUBLIC_API_BASE_URL ?? 'https://api.nexara.ru';
 const apiClient = new ApiClient(BASE_URL);
-// const BASE_URL = 'http://api-test.nexara.ru';
-// const BASE_URL = 'http://42t.nexara.ru';
 
 export class AuthApi {
 	// Basic fetch wrapper for authentication requests

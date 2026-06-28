@@ -1,5 +1,6 @@
 // src/lib/stores/dashboard.js
 import { writable } from 'svelte/store';
+import { env } from '$env/dynamic/public';
 import { ApiClient } from '$lib/api/client';
 
 function createDashboardStore() {
@@ -19,10 +20,9 @@ function createDashboardStore() {
 		dataLoaded: false
 	});
 
-	// const api = new ApiClient('http://api-test.nexara.ru');
-	// const api = new ApiClient('http://42t.nexara.ru');
-	const api = new ApiClient('https://api.nexara.ru');
-	// const api = new ApiClient('http://localhost:8000');
+	// Base URL is set per environment via PUBLIC_API_BASE_URL (see .env.example).
+	// Falls back to prod so a missing/misconfigured var never points elsewhere.
+	const api = new ApiClient(env.PUBLIC_API_BASE_URL ?? 'https://api.nexara.ru');
 
 	return {
 		subscribe,

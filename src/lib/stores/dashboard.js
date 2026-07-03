@@ -11,6 +11,7 @@ function createDashboardStore() {
 		personalPrice: null,
 		overdraft_limit: 0,
 		credits: 0,
+		notify_threshold: null,
 		isLoading: false,
 		location: null,
 		error: null,
@@ -113,6 +114,7 @@ function createDashboardStore() {
 					email: result.email,
 					apiKey: result.api_key,
 					credits: result.credits,
+					notify_threshold: result.notify_threshold ?? null,
 					userId: result.user_id,
 					location: result.location,
 					apiKeys: result.api_keys || [],
@@ -133,6 +135,49 @@ function createDashboardStore() {
 				}));
 				return false;
 			}
+		},
+
+		// Update the low-balance notification threshold.
+		// Pass a number (>= 0) to enable, or null to disable.
+		// Note: to disable we must omit the `threshold` field entirely — sending
+		// an empty string fails the backend's number validation.
+		async updateNotifyThreshold(threshold) {
+			const body = new URLSearchParams();
+			if (threshold !== null && threshold !== undefined && threshold !== '') {
+				body.append('threshold', String(threshold));
+			}
+
+			const token = localStorage.getItem('auth_token');
+			if (!token) {
+				throw new Error('Auth token not found');
+			}
+
+			const response = await fetch(`${api.baseUrl}/update_notify_threshold`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body
+			});
+
+			if (!response.ok) {
+				let detail;
+				try {
+					detail = (await response.json())?.detail;
+				} catch (e) {
+					// response body was not JSON
+				}
+				throw new Error(detail || 'Failed to update notify threshold');
+			}
+
+			const normalized =
+				threshold === null || threshold === undefined || threshold === ''
+					? null
+					: Number(threshold);
+			update((state) => ({ ...state, notify_threshold: normalized }));
+
+			return response.json();
 		},
 
 		async getCredits(amount, apiKey) {

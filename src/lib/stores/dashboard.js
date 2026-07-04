@@ -349,6 +349,36 @@ function createDashboardStore() {
 				console.error('Usage History Error:', error);
 				throw error;
 			}
+		},
+
+		// Keyset-paginated, per-request billed usage feed (newest first).
+		// Pass the previous response's `next_cursor` back as `cursor` for the
+		// next (older) page. Returns the raw payload:
+		//   { items, next_cursor, has_more, currency }
+		async getUsage({ limit = 50, cursor } = {}) {
+			const token = localStorage.getItem('auth_token');
+			if (!token) {
+				throw new Error('Auth token not found');
+			}
+
+			const params = new URLSearchParams();
+			params.set('limit', String(limit));
+			if (cursor != null) {
+				params.set('cursor', String(cursor));
+			}
+
+			const response = await fetch(`${api.baseUrl}/get_usage?${params.toString()}`, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to fetch usage history');
+			}
+
+			return response.json();
 		}
 	};
 }

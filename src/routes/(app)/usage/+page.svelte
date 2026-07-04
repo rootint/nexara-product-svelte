@@ -105,6 +105,11 @@
 		return language ? language.toUpperCase() : '—';
 	}
 
+	function formatProfanityFilter(value) {
+		if (value == null) return '—';
+		return value ? m.usage_on() : m.usage_off();
+	}
+
 	function keyLabel(apiKey) {
 		if (!apiKey) return '—';
 		// Backend fills api_key.name with "Key #<id>" for never-named keys —
@@ -163,6 +168,7 @@
 							<th>{m.usage_col_language()}</th>
 							<th class="num">{m.usage_col_duration()}</th>
 							<th class="num">{m.usage_col_size()}</th>
+							<th>{m.usage_col_profanity()}</th>
 							<th>{m.usage_col_key()}</th>
 							<th class="num">{m.usage_col_cost()}</th>
 							<th>{m.usage_col_request()}</th>
@@ -177,6 +183,7 @@
 								<td>{formatLanguage(item.language)}</td>
 								<td class="num">{formatDuration(item.seconds)}</td>
 								<td class="num">{formatBytes(item.bytes)}</td>
+								<td>{formatProfanityFilter(item.profanity_filter)}</td>
 								<td>
 									<span class:deleted-key={item.api_key?.deleted}>{keyLabel(item.api_key)}</span>
 								</td>
@@ -223,6 +230,11 @@
 								<span class="rc-label">{m.usage_col_duration()}</span>{formatDuration(item.seconds)}
 							</div>
 							<div><span class="rc-label">{m.usage_col_size()}</span>{formatBytes(item.bytes)}</div>
+							<div>
+								<span class="rc-label">{m.usage_col_profanity()}</span>{formatProfanityFilter(
+									item.profanity_filter
+								)}
+							</div>
 							<div class="rc-full">
 								<span class="rc-label">{m.usage_col_key()}</span>
 								<span class:deleted-key={item.api_key?.deleted}>{keyLabel(item.api_key)}</span>

@@ -66,7 +66,8 @@
 	let diarizationSetting = 'telephonic'; // 'general', 'telephonic', 'meeting'
 	let numSpeakers = 0;
 	let isRussian = true;
-	
+	let profanityFilter = false;
+
 	// Model Selection State
 	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-1'
 	// --- File Handling Functions ---
@@ -129,6 +130,8 @@
 		numSpeakers = 0;
 		// Reset model selection
 		selectedModel = 'whisper-1';
+		// Reset profanity filter
+		profanityFilter = false;
 	}
 
 	// --- Transcription Function ---
@@ -153,7 +156,8 @@
 				diarizationSetting,
 				isRussian,
 				numSpeakers,
-				selectedModel
+				selectedModel,
+				profanityFilter
 			);
 			console.log('--- Transcription Successful ---', result);
 
@@ -454,6 +458,10 @@
 					<label class="checkbox-label">
 						<input type="checkbox" bind:checked={isRussian} />
 						{m.db_transcribe_is_russian()}
+					</label>
+					<label class="checkbox-label" title={m.db_transcribe_profanity_filter_tooltip()}>
+						<input type="checkbox" bind:checked={profanityFilter} />
+						{m.db_transcribe_profanity_filter()}
 					</label>
 					<label class="checkbox-label" title={m.db_transcribe_enable_diarization_tooltip()}>
 						<input type="checkbox" bind:checked={enableDiarization} />

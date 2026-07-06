@@ -2,6 +2,7 @@
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import BalanceCard from '../../components/dashboard/cards/BalanceCard.svelte';
 	import UsageCard from '../../components/dashboard/cards/UsageCard.svelte';
+	import PromocodeCard from '../../components/dashboard/cards/PromocodeCard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import { languageTag } from '$lib/paraglide/runtime.js';
 
@@ -47,6 +48,7 @@
 						<p>{m.billing_overdraft_body({ amount: overdraftFormatted })}</p>
 					</div>
 				{/if}
+				<PromocodeCard />
 				<div class="card referral-card">
 					<p class="card-title">{m.referral_title()}</p>
 					<p>

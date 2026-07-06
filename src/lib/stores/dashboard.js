@@ -180,6 +180,43 @@ function createDashboardStore() {
 			return response.json();
 		},
 
+		// Redeem a promocode for the logged-in user. On success the credited
+		// amount is added to the balance and we sync `credits` to the returned
+		// (authoritative) balance. On failure we surface the server's `detail`
+		// string, which is already a user-facing Russian message. The 422 case
+		// has a nested (non-string) detail, so we fall back to a generic message.
+		async applyPromocode(code) {
+			const token = localStorage.getItem('auth_token');
+			if (!token) {
+				throw new Error('Auth token not found');
+			}
+
+			const response = await fetch(`${api.baseUrl}/apply_promocode`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ code })
+			});
+
+			let data = null;
+			try {
+				data = await response.json();
+			} catch (e) {
+				// response body was not JSON
+			}
+
+			if (!response.ok) {
+				const detail = typeof data?.detail === 'string' ? data.detail : null;
+				throw new Error(detail || 'Неверный промокод');
+			}
+
+			update((state) => ({ ...state, credits: data.balance }));
+
+			return data;
+		},
+
 		async getCredits(amount, apiKey) {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 

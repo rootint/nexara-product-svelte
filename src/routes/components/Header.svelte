@@ -11,7 +11,7 @@
 		</div>
 		<div class="top-row">
 			<div class="hide-on-mobile">
-				<a href="https://docs.nexara.ru/docs/quick-start"><p>Документация</p></a>
+				<a href="https://docs.nexara.ru"><p>Документация</p></a>
 				<!-- <a href="#how-works"><p>Как работает</p></a>
 				<div style="width: 4rem" />
 				<a href="#features"><p>Преимущества</p></a>
@@ -21,7 +21,7 @@
 				<a href="#pricing"><p>Тарифы</p></a> -->
 			</div>
 			<div class="show-on-mobile">
-				<a href="https://docs.nexara.ru/docs/quick-start"><p>Документация</p></a>
+				<a href="https://docs.nexara.ru"><p>Документация</p></a>
 			</div>
 		</div>
 	</nav>

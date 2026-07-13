@@ -117,8 +117,8 @@ with open(file_path, "rb") as audio_file:
 				{m.db_guide_n8n_step_4()}
 				<a
 					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru/ru/api-reference/endpoint/transcription'
-						: 'https://docs.nexara.ru/en/api-reference/endpoint/transcription'}
+						? 'https://docs.nexara.ru'
+						: 'https://docs.nexara.ru'}
 					target="_blank">{m.db_guide_n8n_step_4_docs()}</a
 				>
 			</p>
@@ -138,8 +138,8 @@ with open(file_path, "rb") as audio_file:
 				{m.db_guide_python_step_2()}
 				<a
 					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru/ru/api-reference/endpoint/transcription'
-						: 'https://docs.nexara.ru/en/api-reference/endpoint/transcription'}
+						? 'https://docs.nexara.ru'
+						: 'https://docs.nexara.ru'}
 					target="_blank">{m.db_guide_python_step_2_docs()}</a
 				>
 			</p>
@@ -159,8 +159,8 @@ with open(file_path, "rb") as audio_file:
 				{m.db_guide_python_step_2()}
 				<a
 					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru/ru/api-reference/endpoint/transcription'
-						: 'https://docs.nexara.ru/en/api-reference/endpoint/transcription'}
+						? 'https://docs.nexara.ru'
+						: 'https://docs.nexara.ru'}
 					target="_blank">{m.db_guide_python_step_2_docs()}</a
 				>
 			</p>

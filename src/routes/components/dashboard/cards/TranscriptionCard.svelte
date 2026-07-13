@@ -67,6 +67,7 @@
 	let numSpeakers = 0;
 	let isRussian = true;
 	let profanityFilter = false;
+	let roleTagging = true;
 
 	// Model Selection State
 	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-1'
@@ -132,6 +133,7 @@
 		selectedModel = 'whisper-1';
 		// Reset profanity filter
 		profanityFilter = false;
+		roleTagging = true;
 	}
 
 	// --- Transcription Function ---
@@ -157,7 +159,8 @@
 				isRussian,
 				numSpeakers,
 				selectedModel,
-				profanityFilter
+				profanityFilter,
+				enableDiarization && roleTagging ? 'auto' : null
 			);
 			console.log('--- Transcription Successful ---', result);
 
@@ -490,6 +493,13 @@
 										bind:value={numSpeakers}
 									/>
 								</div>
+								<label
+									class="checkbox-label"
+									title={m.db_transcribe_role_tagging_tooltip()}
+								>
+									<input type="checkbox" bind:checked={roleTagging} />
+									{m.db_transcribe_role_tagging()}
+								</label>
 							</div>
 						{/if}
 					</div>

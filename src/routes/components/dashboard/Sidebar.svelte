@@ -103,8 +103,8 @@
 		</a>
 		<a
 			href={languageTag() === 'ru'
-				? 'https://docs.nexara.ru/ru/quickstart'
-				: 'https://docs.nexara.ru/en/quickstart'}
+				? 'https://docs.nexara.ru'
+				: 'https://docs.nexara.ru'}
 			class="section-link-bottom"
 		>
 			<BookOpen></BookOpen>

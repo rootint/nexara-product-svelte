@@ -247,7 +247,8 @@ function createDashboardStore() {
 			isRussian,
 			numSpeakers,
 			model = 'whisper-1',
-			profanityFilter = false
+			profanityFilter = false,
+			roles = null
 		) {
 			// Get the current API key directly from the store's value
 
@@ -267,6 +268,9 @@ function createDashboardStore() {
 			formData.append('diarization_setting', diarizationSetting);
 			formData.append('language', isRussian ? 'ru' : '');
 			formData.append('profanity_filter', profanityFilter);
+			if (roles != null) {
+				formData.append('roles', roles);
+			}
 			console.log(formData);
 			if (numSpeakers > 0) {
 				formData.append('num_speakers', numSpeakers);

@@ -110,6 +110,11 @@
 		return value ? m.usage_on() : m.usage_off();
 	}
 
+	function formatTokens(n) {
+		if (n == null) return '—';
+		return n.toLocaleString(locale);
+	}
+
 	function keyLabel(apiKey) {
 		if (!apiKey) return '—';
 		// Backend fills api_key.name with "Key #<id>" for never-named keys —
@@ -169,6 +174,9 @@
 							<th class="num">{m.usage_col_duration()}</th>
 							<th class="num">{m.usage_col_size()}</th>
 							<th>{m.usage_col_profanity()}</th>
+							<th>{m.usage_col_role_tagging()}</th>
+							<th class="num">{m.usage_col_llm_in()}</th>
+							<th class="num">{m.usage_col_llm_out()}</th>
 							<th>{m.usage_col_key()}</th>
 							<th class="num">{m.usage_col_cost()}</th>
 							<th>{m.usage_col_request()}</th>
@@ -184,6 +192,9 @@
 								<td class="num">{formatDuration(item.seconds)}</td>
 								<td class="num">{formatBytes(item.bytes)}</td>
 								<td>{formatProfanityFilter(item.profanity_filter)}</td>
+								<td>{formatProfanityFilter(item.role_tagging)}</td>
+								<td class="num">{formatTokens(item.llm_input_tokens)}</td>
+								<td class="num">{formatTokens(item.llm_output_tokens)}</td>
 								<td>
 									<span class:deleted-key={item.api_key?.deleted}>{keyLabel(item.api_key)}</span>
 								</td>
@@ -234,6 +245,17 @@
 								<span class="rc-label">{m.usage_col_profanity()}</span>{formatProfanityFilter(
 									item.profanity_filter
 								)}
+							</div>
+							<div>
+								<span class="rc-label">{m.usage_col_role_tagging()}</span>{formatProfanityFilter(
+									item.role_tagging
+								)}
+							</div>
+							<div>
+								<span class="rc-label">{m.usage_col_llm_in()}</span>{formatTokens(item.llm_input_tokens)}
+							</div>
+							<div>
+								<span class="rc-label">{m.usage_col_llm_out()}</span>{formatTokens(item.llm_output_tokens)}
 							</div>
 							<div class="rc-full">
 								<span class="rc-label">{m.usage_col_key()}</span>

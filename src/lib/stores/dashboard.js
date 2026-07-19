@@ -18,8 +18,60 @@ function createDashboardStore() {
 		apiKeys: [],
 		apiKeysLoading: false,
 		apiKeysError: null,
-		dataLoaded: false
+		dataLoaded: false,
+		asyncJobs: []
 	});
+
+	// localStorage key for remembered async transcription jobs. The backend keeps
+	// results for 12h; we persist the ids/metadata AND the full result so users can
+	// re-open completed jobs indefinitely (even after the backend deletes them) and
+	// resume polling in-progress ones across reloads. All local to this browser.
+	const ASYNC_JOBS_KEY = 'nexara_async_jobs';
+	// Local auto-delete preference for cached transcriptions: '1d' | '7d' | '30d' | 'never'.
+	const RETENTION_KEY = 'nexara_transcript_retention';
+	const RETENTION_DAYS = { '1d': 1, '7d': 7, '30d': 30 };
+
+	// Drop jobs older than the local retention window (based on completion, or
+	// submission time as a fallback). 'never'/unknown keeps everything.
+	function pruneByRetention(jobs) {
+		let retention = 'never';
+		try {
+			retention = localStorage.getItem(RETENTION_KEY) || 'never';
+		} catch (e) {
+			/* ignore */
+		}
+		const days = RETENTION_DAYS[retention];
+		if (!days) return jobs;
+		const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+		return jobs.filter((j) => {
+			const t = new Date(j.completedAt || j.createdAt).getTime();
+			return isNaN(t) ? true : t >= cutoff;
+		});
+	}
+
+	// Persist jobs to localStorage. Cached results can be large, so on a quota
+	// error we progressively drop the result payload of the oldest jobs (keeping
+	// their metadata) until it fits. Returns the (possibly trimmed) array.
+	function persistAsyncJobs(jobs) {
+		let attempt = jobs;
+		for (;;) {
+			try {
+				localStorage.setItem(ASYNC_JOBS_KEY, JSON.stringify(attempt));
+				return attempt;
+			} catch (e) {
+				// Find the oldest job (end of array = oldest) still holding a result.
+				let idx = -1;
+				for (let i = attempt.length - 1; i >= 0; i--) {
+					if (attempt[i]?.result) {
+						idx = i;
+						break;
+					}
+				}
+				if (idx === -1) return attempt; // nothing left to trim; keep in-memory only
+				attempt = attempt.map((j, i) => (i === idx ? { ...j, result: null } : j));
+			}
+		}
+	}
 
 	// Base URL is set per environment via PUBLIC_API_BASE_URL (see .env.example).
 	// Falls back to prod so a missing/misconfigured var never points elsewhere.
@@ -239,7 +291,10 @@ function createDashboardStore() {
 				}));
 			}
 		},
-		async transcribeFile(
+		// Submit an async transcription job. Returns immediately with
+		// { job_id, status, created_at }; the actual result is fetched later via
+		// fetchTranscriptionJob. Uses the same parameters as the old sync call.
+		async submitTranscriptionJob(
 			file,
 			apiKey,
 			enableDiarization,
@@ -250,8 +305,6 @@ function createDashboardStore() {
 			profanityFilter = false,
 			roles = null
 		) {
-			// Get the current API key directly from the store's value
-
 			if (!apiKey) {
 				throw new Error('API ключ не найден. Невозможно выполнить транскрибацию.');
 			}
@@ -271,26 +324,94 @@ function createDashboardStore() {
 			if (roles != null) {
 				formData.append('roles', roles);
 			}
-			console.log(formData);
 			if (numSpeakers > 0) {
 				formData.append('num_speakers', numSpeakers);
 			}
-			// Note: The ApiClient base URL is 'https://api.nexara.ru'
-			// The required endpoint is '/api/v1/audio/transcriptions'
-			// We need to call the correct endpoint path relative to the base URL.
-			const endpoint = '/api/v1/audio/transcriptions';
 
 			try {
-				// Use the new makeFormDataRequest method
-				const result = await api.makeFormDataRequest(endpoint, apiKey, formData);
-				// Optionally, refresh user credits/data after transcription if credits are deducted server-side immediately
-				// await this.loadDashboardData(); // Uncomment if needed
-				return result; // Return the transcription result
+				// Base URL is 'https://api.nexara.ru'; async submit endpoint.
+				return await api.makeFormDataRequest(
+					'/api/v1/audio/transcriptions/async',
+					apiKey,
+					formData
+				);
 			} catch (error) {
-				console.error('Transcription Store Error:', error);
-				// Re-throw the error so the component can catch it and display a message
+				console.error('Transcription submit error:', error);
 				throw error;
 			}
+		},
+
+		// Poll a single async job. Returns
+		// { job_id, status, created_at, completed_at, result, error }.
+		// Throws with error.status = 404 once the job has been deleted (>12h).
+		async fetchTranscriptionJob(jobId, apiKey) {
+			if (!jobId) {
+				throw new Error('Job id is required.');
+			}
+			return api.makeApiKeyRequest(`/api/v1/audio/transcriptions/async/${jobId}`, apiKey);
+		},
+
+		// --- Remembered async jobs (localStorage) ---------------------------------
+
+		loadAsyncJobs() {
+			let jobs = [];
+			try {
+				const raw = localStorage.getItem(ASYNC_JOBS_KEY);
+				if (raw) jobs = JSON.parse(raw);
+				if (!Array.isArray(jobs)) jobs = [];
+			} catch (e) {
+				jobs = [];
+			}
+			jobs = persistAsyncJobs(pruneByRetention(jobs));
+			update((state) => ({ ...state, asyncJobs: jobs }));
+			return jobs;
+		},
+
+		saveAsyncJob(job) {
+			update((state) => {
+				const jobs = persistAsyncJobs(
+					[job, ...(state.asyncJobs || []).filter((j) => j.jobId !== job.jobId)].slice(0, 50)
+				);
+				return { ...state, asyncJobs: jobs };
+			});
+		},
+
+		updateAsyncJob(jobId, patch) {
+			update((state) => {
+				const jobs = persistAsyncJobs(
+					(state.asyncJobs || []).map((j) => (j.jobId === jobId ? { ...j, ...patch } : j))
+				);
+				return { ...state, asyncJobs: jobs };
+			});
+		},
+
+		removeAsyncJob(jobId) {
+			update((state) => {
+				const jobs = persistAsyncJobs((state.asyncJobs || []).filter((j) => j.jobId !== jobId));
+				return { ...state, asyncJobs: jobs };
+			});
+		},
+
+		// --- Local transcription retention preference ---
+		getTranscriptRetention() {
+			try {
+				return localStorage.getItem(RETENTION_KEY) || 'never';
+			} catch (e) {
+				return 'never';
+			}
+		},
+
+		setTranscriptRetention(value) {
+			try {
+				localStorage.setItem(RETENTION_KEY, value);
+			} catch (e) {
+				/* ignore */
+			}
+			// Apply the new window immediately to already-stored jobs.
+			update((state) => {
+				const jobs = persistAsyncJobs(pruneByRetention(state.asyncJobs || []));
+				return { ...state, asyncJobs: jobs };
+			});
 		},
 
 		async deleteApiKey(keyId) {

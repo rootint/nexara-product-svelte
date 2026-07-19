@@ -1,6 +1,21 @@
 <script>
+	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { dashboardStore } from '$lib/stores/dashboard';
+
+	// --- Local transcription retention (this browser only) ---
+	let retention = 'never';
+	let retentionSaved = false;
+	let retentionSavedTimer;
+	onMount(() => {
+		retention = dashboardStore.getTranscriptRetention();
+	});
+	function handleRetentionChange() {
+		dashboardStore.setTranscriptRetention(retention);
+		retentionSaved = true;
+		clearTimeout(retentionSavedTimer);
+		retentionSavedTimer = setTimeout(() => (retentionSaved = false), 2500);
+	}
 
 	let currentPassword = '';
 	let newPassword = '';
@@ -154,6 +169,28 @@
 				</button>
 			</form>
 		</div>
+
+		<div class="card">
+			<div class="card-header">
+				<p class="card-title">Хранение транскрибаций</p>
+			</div>
+			<p class="hint">
+				Результаты транскрибаций из дашборда сохраняются локально в этом браузере, чтобы вы могли
+				открывать их даже после того, как сервер удалит их (через 12 часов). Здесь можно настроить
+				автоматическое удаление локальной копии. Настройка хранится только на этом устройстве и не
+				влияет на другие браузеры.
+			</p>
+			<p class="label">Автоматически удалять</p>
+			<select bind:value={retention} on:change={handleRetentionChange}>
+				<option value="1d">Через 1 день</option>
+				<option value="7d">Через 7 дней</option>
+				<option value="30d">Через 30 дней</option>
+				<option value="never">Никогда</option>
+			</select>
+			{#if retentionSaved}
+				<p class="success">Настройка сохранена</p>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -226,6 +263,26 @@
 	}
 	input:focus {
 		border-color: rgba(250, 250, 250, 0.3);
+	}
+	select {
+		width: 480px;
+		max-width: 100%;
+		border: 1px solid rgba(250, 250, 250, 0.11);
+		border-radius: 12px;
+		padding: 16px 24px;
+		background-color: rgba(250, 250, 250, 0.03);
+		color: inherit;
+		font-size: 16px;
+		outline: none;
+		margin-bottom: 16px;
+		box-sizing: border-box;
+		cursor: pointer;
+	}
+	select:focus {
+		border-color: rgba(250, 250, 250, 0.3);
+	}
+	select option {
+		color: #111;
 	}
 	input:disabled {
 		opacity: 0.4;

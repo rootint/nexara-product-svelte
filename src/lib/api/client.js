@@ -95,4 +95,44 @@ export class ApiClient {
 		// Assume successful transcription responses are JSON
 		return response.json();
 	}
+
+	// --- API-key authed request without a body (e.g. GET job status) ---
+	async makeApiKeyRequest(endpoint, apiKey, options = {}) {
+		if (!apiKey) {
+			throw new Error('API Key is required for this request.');
+		}
+
+		const headers = {
+			...options.headers,
+			Authorization: `Bearer ${apiKey}`
+		};
+
+		const response = await fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'GET',
+			...options,
+			headers
+		});
+
+		if (!response.ok) {
+			let errorPayload = null;
+			try {
+				errorPayload = await response.json();
+			} catch (e) {
+				// Ignore if response body is not JSON
+			}
+			// Surface the HTTP status so callers can distinguish e.g. 404 (job
+			// expired/deleted on the backend) from transient failures.
+			const error = new Error(
+				errorPayload?.detail || `API request failed with status ${response.status}`
+			);
+			error.status = response.status;
+			throw error;
+		}
+
+		if (response.status === 204) {
+			return null;
+		}
+
+		return response.json();
+	}
 }

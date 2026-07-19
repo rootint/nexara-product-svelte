@@ -1,4 +1,5 @@
 <script>
+	import { onMount, onDestroy } from 'svelte';
 	import { dashboardStore } from '$lib/stores/dashboard';
 	import { parseSrt, formatDurationHMS } from '$lib/utils/subtitles';
 	import {
@@ -9,7 +10,10 @@
 		X,
 		Download,
 		Copy,
-		ChevronDown
+		ChevronDown,
+		Eye,
+		Trash2,
+		Check
 	} from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
@@ -71,6 +75,51 @@
 
 	// Model Selection State
 	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-1'
+
+	// --- Async Job State ---
+	const POLL_INTERVAL_MS = 3000;
+	const MAX_POLL_MS = 30 * 60 * 1000; // stop foreground waiting after ~30 min
+	const pollers = new Map(); // jobId -> setTimeout id
+	let activeJobId = null; // job whose result is shown in the main view
+	let foregroundJobId = null; // job driving the main progress/result view
+	let loadingJobId = null; // job whose result is being (re)fetched for viewing
+	let confirmDeleteJobId = null; // job pending a delete confirmation
+	let resumeAttempted = false;
+
+	// Resolve the raw API key for a stored job so we can poll/re-fetch it.
+	function resolveApiKey(job) {
+		if (job?.apiKeyId) {
+			const key = $dashboardStore.apiKeys?.find((k) => k.id === job.apiKeyId);
+			if (key?.api_key) return key.api_key;
+		}
+		return $dashboardStore.apiKey || null;
+	}
+
+	function statusLabel(status) {
+		switch (status) {
+			case 'complete':
+				return m.db_transcribe_status_complete();
+			case 'error':
+				return m.db_transcribe_status_error();
+			case 'expired':
+				return m.db_transcribe_status_expired();
+			default:
+				return m.db_transcribe_status_in_progress();
+		}
+	}
+
+	function formatJobTime(iso) {
+		if (!iso) return '';
+		const d = new Date(iso);
+		if (isNaN(d.getTime())) return '';
+		return d.toLocaleString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
+
 	// --- File Handling Functions ---
 
 	function handleDragOver(event) {
@@ -118,7 +167,12 @@
 	}
 
 	function clearTranscriptionState() {
+		// Detach the main view from any job; a running job keeps polling in the
+		// background and stays visible in the Recent transcriptions list.
+		foregroundJobId = null;
+		activeJobId = null;
 		selectedFile = null;
+		selectedFileName = null;
 		isTranscribing = false;
 		transcriptionResult = null;
 		transcriptionError = null;
@@ -137,13 +191,12 @@
 	}
 
 	// --- Transcription Function ---
+	// Submits an async job, remembers it, then polls until it completes.
 	async function transcribeFile() {
-        console.log(selectedApiKey);
-        console.log(selectedApiKey?.api_key);
 		const apiKeyToUse = selectedApiKey?.api_key || $dashboardStore.apiKey;
 		if (!selectedFile || isTranscribing || !apiKeyToUse) return;
 
-		console.log('--- Starting Transcription ---');
+		const fileName = selectedFile.name;
 		isTranscribing = true;
 		transcriptionResult = null;
 		transcriptionError = null;
@@ -151,7 +204,7 @@
 		copyButtonText = m.db_transcribe_copy();
 
 		try {
-			const result = await dashboardStore.transcribeFile(
+			const submission = await dashboardStore.submitTranscriptionJob(
 				selectedFile,
 				apiKeyToUse,
 				enableDiarization,
@@ -162,49 +215,236 @@
 				profanityFilter,
 				enableDiarization && roleTagging ? 'auto' : null
 			);
-			console.log('--- Transcription Successful ---', result);
 
-			// Basic validation of the expected result structure
-			if (
-				typeof result !== 'object' ||
-				result === null ||
-				typeof result.srt !== 'string' ||
-				typeof result.vtt !== 'string' ||
-				typeof result.verbose_json?.text !== 'string'
-			) {
-				console.error('Unexpected transcription result structure:', result);
-				throw new Error(m.error_invalid_transcription_format());
+			const jobId = submission?.job_id;
+			if (!jobId) {
+				throw new Error(m.error_unknown_transcription());
 			}
 
-			transcriptionResult = result; // Store the raw result
+			selectedFileName = fileName;
+			activeJobId = jobId;
+			foregroundJobId = jobId;
 
-			// Parse the SRT text if available
-			if (transcriptionResult.srt) {
-				parsedSubtitles = parseSrt(transcriptionResult.srt);
-				if (!parsedSubtitles || parsedSubtitles.length === 0) {
-					console.warn('SRT parsing resulted in no valid subtitles.');
-					// Keep result, parsedSubtitles will be empty/null, handled by template
-				}
-			} else {
-				console.error('Transcription result is missing SRT data.');
-				// This case is less likely now due to the check above, but kept for safety
-				parsedSubtitles = null;
-			}
+			dashboardStore.saveAsyncJob({
+				jobId,
+				apiKeyId: selectedApiKey?.id ?? null,
+				keyName: selectedApiKey?.name || null,
+				fileName,
+				model: selectedModel,
+				status: submission.status || 'in_progress',
+				createdAt: submission.created_at || new Date().toISOString()
+			});
 
-			// Don't clear selectedFile immediately if we might want its name later,
-			// but for now, the logic clears it.
-			// selectedFile = null; // Let's keep the file info until 'clear' is clicked? Or maybe not needed now.
-			// Let's clear it for now as per original logic. If needed later, we can store the name.
 			selectedFile = null;
-			await dashboardStore.loadDashboardData(); // Reload dashboard data (e.g., credits update)
+			startPolling(jobId, apiKeyToUse);
 		} catch (error) {
-			console.error('--- Transcription Failed --- ', error);
+			console.error('--- Transcription submit failed --- ', error);
 			transcriptionError = error.message || m.error_unknown_transcription();
-			selectedFile = null; // Clear file on error too
-		} finally {
+			selectedFile = null;
 			isTranscribing = false;
 		}
 	}
+
+	// --- Async Polling ---
+
+	// Turn a completed job's bundled result into the on-screen state.
+	function applyResult(result) {
+		if (
+			typeof result !== 'object' ||
+			result === null ||
+			typeof result.srt !== 'string' ||
+			typeof result.vtt !== 'string' ||
+			typeof result.verbose_json?.text !== 'string'
+		) {
+			throw new Error(m.error_invalid_transcription_format());
+		}
+		transcriptionResult = result;
+		parsedSubtitles = result.srt ? parseSrt(result.srt) : null;
+	}
+
+	function stopPolling(jobId) {
+		const id = pollers.get(jobId);
+		if (id) clearTimeout(id);
+		pollers.delete(jobId);
+	}
+
+	// Poll a job until it completes/fails. Whether this drives the main view is
+	// decided per-tick from foregroundJobId, so the user can detach (clear) while
+	// the job keeps running in the background list.
+	function startPolling(jobId, apiKey) {
+		if (pollers.has(jobId)) return;
+		let attempts = 0;
+		const maxAttempts = Math.ceil(MAX_POLL_MS / POLL_INTERVAL_MS);
+
+		const schedule = () => pollers.set(jobId, setTimeout(tick, POLL_INTERVAL_MS));
+
+		const tick = async () => {
+			attempts++;
+			const isForeground = () => foregroundJobId === jobId;
+			try {
+				const data = await dashboardStore.fetchTranscriptionJob(jobId, apiKey);
+
+				if (data.status === 'complete') {
+					// Cache the full result locally so it survives the backend's 12h deletion.
+					dashboardStore.updateAsyncJob(jobId, {
+						status: 'complete',
+						completedAt: data.completed_at || new Date().toISOString(),
+						result: data.result
+					});
+					stopPolling(jobId);
+					if (isForeground()) {
+						try {
+							applyResult(data.result);
+							dashboardStore.loadDashboardData(); // refresh credits
+						} catch (e) {
+							transcriptionError = e.message;
+						}
+						isTranscribing = false;
+					}
+					return;
+				}
+
+				if (data.status === 'error') {
+					dashboardStore.updateAsyncJob(jobId, { status: 'error', error: data.error || null });
+					stopPolling(jobId);
+					if (isForeground()) {
+						transcriptionError = data.error || m.error_unknown_transcription();
+						isTranscribing = false;
+					}
+					return;
+				}
+
+				// still in_progress
+				if (attempts >= maxAttempts) {
+					stopPolling(jobId);
+					if (isForeground()) {
+						transcriptionError = m.db_transcribe_timeout();
+						isTranscribing = false;
+					}
+					return;
+				}
+				schedule();
+			} catch (err) {
+				if (err?.status === 404) {
+					dashboardStore.updateAsyncJob(jobId, { status: 'expired' });
+					stopPolling(jobId);
+					if (isForeground()) {
+						transcriptionError = m.db_transcribe_job_expired();
+						isTranscribing = false;
+					}
+					return;
+				}
+				// Transient network/server error — keep retrying until the cap.
+				if (attempts >= maxAttempts) {
+					stopPolling(jobId);
+					if (isForeground()) {
+						transcriptionError = err.message || m.error_unknown_transcription();
+						isTranscribing = false;
+					}
+					return;
+				}
+				schedule();
+			}
+		};
+
+		schedule();
+	}
+
+	// Open a remembered job in the main view. Uses the locally cached result when
+	// present (survives backend deletion); otherwise re-fetches from the backend.
+	async function viewJob(job) {
+		if (loadingJobId) return;
+
+		transcriptionResult = null;
+		transcriptionError = null;
+		parsedSubtitles = null;
+		selectedFile = null;
+		copyButtonText = m.db_transcribe_copy();
+
+		// Fast path: show the cached result without a network request.
+		if (job.result) {
+			activeJobId = job.jobId;
+			selectedFileName = job.fileName;
+			try {
+				applyResult(job.result);
+			} catch (e) {
+				transcriptionError = e.message;
+			}
+			return;
+		}
+
+		const apiKey = resolveApiKey(job);
+		if (!apiKey) return;
+
+		loadingJobId = job.jobId;
+		try {
+			const data = await dashboardStore.fetchTranscriptionJob(job.jobId, apiKey);
+			activeJobId = job.jobId;
+			selectedFileName = job.fileName;
+
+			if (data.status === 'complete') {
+				dashboardStore.updateAsyncJob(job.jobId, {
+					status: 'complete',
+					completedAt: data.completed_at || new Date().toISOString(),
+					result: data.result
+				});
+				applyResult(data.result);
+			} else if (data.status === 'error') {
+				dashboardStore.updateAsyncJob(job.jobId, { status: 'error', error: data.error || null });
+				transcriptionError = data.error || m.error_unknown_transcription();
+			} else {
+				// Job is still running — attach the main view and (re)start polling.
+				dashboardStore.updateAsyncJob(job.jobId, { status: 'in_progress' });
+				isTranscribing = true;
+				foregroundJobId = job.jobId;
+				startPolling(job.jobId, apiKey);
+			}
+		} catch (err) {
+			if (err?.status === 404) {
+				dashboardStore.updateAsyncJob(job.jobId, { status: 'expired' });
+				transcriptionError = m.db_transcribe_job_expired();
+			} else {
+				transcriptionError = err.message || m.error_unknown_transcription();
+			}
+			activeJobId = job.jobId;
+		} finally {
+			loadingJobId = null;
+		}
+	}
+
+	function removeJob(jobId) {
+		confirmDeleteJobId = null;
+		stopPolling(jobId);
+		dashboardStore.removeAsyncJob(jobId);
+		if (activeJobId === jobId || foregroundJobId === jobId) {
+			clearTranscriptionState();
+		}
+	}
+
+	// Load remembered jobs on mount; resume polling any that are still running
+	// once API keys are available (needed to authenticate the status requests).
+	onMount(() => {
+		dashboardStore.loadAsyncJobs();
+	});
+
+	$: if (
+		!resumeAttempted &&
+		$dashboardStore.asyncJobs?.length &&
+		($dashboardStore.apiKeys?.length || $dashboardStore.apiKey)
+	) {
+		resumeAttempted = true;
+		for (const job of $dashboardStore.asyncJobs) {
+			if (job.status === 'in_progress') {
+				const apiKey = resolveApiKey(job);
+				if (apiKey) startPolling(job.jobId, apiKey);
+			}
+		}
+	}
+
+	onDestroy(() => {
+		for (const id of pollers.values()) clearTimeout(id);
+		pollers.clear();
+	});
 
 	// --- Helper Functions for Actions ---
 
@@ -444,20 +684,6 @@
 					</div>
 				{/if}
 				<div class="transcription-settings">
-					<div class="model-selection">
-						<div class="model-label">{m.db_transcribe_model_label()}</div>
-						<div class="radio-group">
-							<label class="radio-label">
-								<input type="radio" bind:group={selectedModel} value="whisper-1" />
-								<span>Nexara</span>
-							</label>
-							<label class="radio-label">
-								<input type="radio" bind:group={selectedModel} value="nexara-1" />
-								<span>Nexara Experimental</span>
-							</label>
-						</div>
-					</div>
-					
 					<label class="checkbox-label">
 						<input type="checkbox" bind:checked={isRussian} />
 						{m.db_transcribe_is_russian()}
@@ -526,7 +752,7 @@
 					{#if selectedFile}
 						<p class="file-name-progress" title={selectedFile.name}>{selectedFile.name}</p>
 					{/if}
-					<p class="transcribing-note">{m.db_transcribe_progress_note()}</p>
+					<p class="transcribing-note">{m.db_transcribe_progress_note_async()}</p>
 				</div>
 
 				<!-- State: Transcription Error -->
@@ -592,6 +818,75 @@
 						</button>
 					</div>
 				{/if}
+			{/if}
+
+			<!-- Remembered async jobs (persist until deleted on the backend after 12h) -->
+			{#if $dashboardStore.asyncJobs?.length && !selectedFile && !isTranscribing}
+				<div class="recent-jobs">
+					<div class="recent-header">
+						<span class="recent-title">{m.db_transcribe_recent_title()}</span>
+						<span class="recent-note">{m.db_transcribe_recent_note()}</span>
+					</div>
+					<div class="recent-list">
+						{#each $dashboardStore.asyncJobs as job (job.jobId)}
+							<div class="recent-item" class:active={job.jobId === activeJobId}>
+								<div class="recent-item-main">
+									<span class="recent-file" title={job.fileName}>{job.fileName}</span>
+									<span class="recent-meta">
+										{formatJobTime(job.createdAt)}{job.keyName ? ' · ' + job.keyName : ''}
+									</span>
+								</div>
+								<span class="job-status status-{job.status}">
+									{#if job.status === 'in_progress'}
+										<span class="mini-spin"><Loader2 size={13} /></span>
+									{/if}
+									{statusLabel(job.status)}
+								</span>
+								<div class="recent-actions">
+									{#if confirmDeleteJobId === job.jobId}
+										<span class="confirm-text">{m.db_transcribe_remove_confirm_q()}</span>
+										<button
+											class="recent-icon-btn danger"
+											title={m.db_transcribe_remove()}
+											on:click={() => removeJob(job.jobId)}
+										>
+											<Check size={14} />
+										</button>
+										<button
+											class="recent-icon-btn"
+											title={m.db_transcribe_cancel()}
+											on:click={() => (confirmDeleteJobId = null)}
+										>
+											<X size={14} />
+										</button>
+									{:else}
+										{#if job.status === 'complete' || job.status === 'in_progress'}
+											<button
+												class="recent-btn"
+												on:click={() => viewJob(job)}
+												disabled={loadingJobId === job.jobId}
+											>
+												{#if loadingJobId === job.jobId}
+													<span class="mini-spin"><Loader2 size={13} /></span>
+												{:else}
+													<Eye size={13} />
+												{/if}
+												{m.db_transcribe_view()}
+											</button>
+										{/if}
+										<button
+											class="recent-icon-btn"
+											title={m.db_transcribe_remove()}
+											on:click={() => (confirmDeleteJobId = job.jobId)}
+										>
+											<Trash2 size={14} />
+										</button>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -1131,6 +1426,157 @@
 		font-size: 13px;
 		resize: vertical;
 		margin-bottom: 16px;
+	}
+
+	/* --- Recent async jobs --- */
+	.recent-jobs {
+		margin-top: 20px;
+		padding-top: 16px;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+	.recent-header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+		margin-bottom: 12px;
+	}
+	.recent-title {
+		font-size: 14px;
+		color: #999;
+		font-weight: 500;
+	}
+	.recent-note {
+		font-size: 12px;
+		color: #777;
+	}
+	.recent-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.recent-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 12px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.03);
+		transition: border-color 0.2s ease;
+	}
+	.recent-item.active {
+		border-color: rgba(255, 255, 255, 0.35);
+		background: rgba(255, 255, 255, 0.06);
+	}
+	.recent-item-main {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+		flex-grow: 1;
+	}
+	.recent-file {
+		font-size: 14px;
+		color: #eee;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.recent-meta {
+		font-size: 12px;
+		color: #888;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.job-status {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12px;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+	.status-in_progress {
+		color: #7fb3ff;
+	}
+	.status-complete {
+		color: #6ddf9c;
+	}
+	.status-error {
+		color: #ff6b6b;
+	}
+	.status-expired {
+		color: #999;
+	}
+	.recent-actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+	.recent-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 10px;
+		border-radius: 6px;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		background: rgba(255, 255, 255, 0.05);
+		color: #ccc;
+		cursor: pointer;
+		font-size: 13px;
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease,
+			color 0.2s ease;
+	}
+	.recent-btn:hover:not(:disabled) {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.4);
+		color: #eee;
+	}
+	.recent-btn:disabled {
+		opacity: 0.6;
+		cursor: default;
+	}
+	.recent-icon-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 30px;
+		border-radius: 6px;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		background: transparent;
+		color: #999;
+		cursor: pointer;
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease;
+	}
+	.recent-icon-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: #eee;
+	}
+	.recent-icon-btn.danger {
+		border-color: rgba(255, 107, 107, 0.5);
+		color: #ff6b6b;
+	}
+	.recent-icon-btn.danger:hover {
+		background: rgba(255, 107, 107, 0.15);
+		color: #ff8a8a;
+	}
+	.confirm-text {
+		font-size: 13px;
+		color: #ccc;
+		white-space: nowrap;
+	}
+	.mini-spin {
+		display: inline-flex;
+		animation: spin 1.5s linear infinite;
 	}
 
 	/* Responsive adjustments */

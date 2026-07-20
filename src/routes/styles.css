@@ -6,6 +6,38 @@
 	--bg-2: #181818;
 	/* --desktop-width: 1368px; */
 	/* --desktop-width: 1900px; */
+
+	/* ─── Brand spectrum (gradient stops) ─────────────────────── */
+	--brand-red: #ca2a2a;
+	--brand-amber: #ca8d2a;
+	--brand-yellow: #caa52a;
+	--brand-mint: #2aca8d;
+	--brand-blue: #2a55ca;
+	--brand-violet: #572aca;
+
+	--brand-gradient: linear-gradient(
+		90deg,
+		var(--brand-red) 0%,
+		var(--brand-amber) 20%,
+		var(--brand-yellow) 40%,
+		var(--brand-mint) 60%,
+		var(--brand-blue) 80%,
+		var(--brand-violet) 100%
+	);
+
+	--top-gradient-height: 6px;
+}
+
+/* Fixed brand gradient bar pinned to the very top of every page. */
+.gradient-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: var(--top-gradient-height);
+	width: 100%;
+	background: var(--brand-gradient);
+	z-index: 1000;
+	pointer-events: none;
 }
 
 * {

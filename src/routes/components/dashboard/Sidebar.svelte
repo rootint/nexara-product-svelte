@@ -3,7 +3,6 @@
 	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
-	import { languageTag } from '$lib/paraglide/runtime';
 	import { page } from '$app/stores';
 
 	// Regex to check for root path with optional language prefix
@@ -95,16 +94,18 @@
 	</div>
 	<div class="bottom-sections">
 		<a
-			href={languageTag() === 'ru' ? 'https://t.me/nexara_news' : 'https://discord.gg/wuj8dwQKrv'}
+			href="https://nexara.ru/releases"
+			target="_blank"
+			rel="noopener noreferrer"
 			class="section-link-bottom"
 		>
 			<Rss></Rss>
 			<p>{m.db_sidebar_blog()}</p>
 		</a>
 		<a
-			href={languageTag() === 'ru'
-				? 'https://docs.nexara.ru'
-				: 'https://docs.nexara.ru'}
+			href="https://docs.nexara.ru"
+			target="_blank"
+			rel="noopener noreferrer"
 			class="section-link-bottom"
 		>
 			<BookOpen></BookOpen>

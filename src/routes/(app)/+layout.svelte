@@ -8,7 +8,6 @@
 	import { sidebarOpen } from '$lib/stores/ui.js';
 
 	import '../styles.css';
-	import Parallax from '../components/Parallax.svelte';
 	import Sidebar from '../components/dashboard/Sidebar.svelte';
 	import Topbar from '../components/dashboard/Topbar.svelte';
 	import Onboarding from '../components/onboarding/Onboarding.svelte';
@@ -54,8 +53,6 @@
 <Onboarding />
 
 <ParaglideJS {i18n}>
-	<Parallax></Parallax>
-
 	<div class="app-container">
 		<div
 			class="sidebar"

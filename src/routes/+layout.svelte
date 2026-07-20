@@ -7,7 +7,6 @@
 	import { dashboardStore } from '$lib/stores/dashboard';
 
 	import './styles.css';
-	import Parallax from './components/Parallax.svelte';
 
 	$: {
 		if (browser && $dashboardStore.location && $page.url.pathname) {
@@ -28,9 +27,9 @@
 	}
 </script>
 
-<ParaglideJS {i18n}>
-	<Parallax></Parallax>
+<div class="gradient-bar" aria-hidden="true"></div>
 
+<ParaglideJS {i18n}>
 	<div class="app">
 		<!-- <ScrollableHeader></ScrollableHeader>
 	<Header></Header> -->

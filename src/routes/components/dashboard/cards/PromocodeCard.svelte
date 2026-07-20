@@ -149,4 +149,14 @@
 		font-size: 14px;
 		color: #4caf82 !important;
 	}
+
+	@media (max-width: 600px) {
+		.promo-form {
+			flex-direction: column;
+			gap: 16px;
+		}
+		.apply-btn {
+			width: 100%;
+		}
+	}
 </style>

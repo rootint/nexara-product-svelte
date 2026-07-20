@@ -56,6 +56,10 @@
 	];
 	const acceptedExtensionsString =
 		'.mp3, .m4a, .mp4, .wav, .ogg, .aac, .flac, .opus, .mov, .avi, .mkv, .webm';
+	const acceptedExtensions = acceptedExtensionsString.split(',').map((e) => e.trim().toLowerCase());
+	// Client-side sanity cap so an obviously-wrong file (e.g. a multi-GB archive)
+	// is rejected before uploading; the backend enforces the authoritative limit.
+	const MAX_FILE_SIZE_MB = 2048;
 
 	// Transcription State
 	let isTranscribing = false;
@@ -103,6 +107,8 @@
 				return m.db_transcribe_status_error();
 			case 'expired':
 				return m.db_transcribe_status_expired();
+			case 'stalled':
+				return m.db_transcribe_status_stalled();
 			default:
 				return m.db_transcribe_status_in_progress();
 		}
@@ -151,6 +157,23 @@
 			return;
 		}
 		const file = files[0];
+
+		// Drag-and-drop bypasses the <input accept> filter, so validate here too.
+		// Prefer the browser-provided MIME type; fall back to the extension since
+		// some valid containers (.mkv, .opus, .flac) often arrive with no MIME.
+		const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+		const typeOk =
+			(file.type && acceptedMimeTypes.includes(file.type)) || acceptedExtensions.includes(ext);
+		if (!typeOk) {
+			alert(m.alert_unsupported_file_type());
+			return;
+		}
+
+		if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+			alert(m.alert_file_too_large({ maxMb: MAX_FILE_SIZE_MB }));
+			return;
+		}
+
 		selectedFile = file;
 		selectedFileName = file.name;
 		transcriptionResult = null;
@@ -180,7 +203,7 @@
 		if (fileInputRef) fileInputRef.value = null;
 		// Reset diarization settings
 		enableDiarization = false;
-		diarizationSetting = 'general';
+		diarizationSetting = 'telephonic';
 		numSpeakers = 0;
 		// Reset model selection
 		selectedModel = 'whisper-1';
@@ -315,6 +338,10 @@
 
 				// still in_progress
 				if (attempts >= maxAttempts) {
+					// Foreground polling gave up, but the job may still finish on the
+					// backend. Mark it 'stalled' so the list stops showing a live
+					// spinner forever while keeping the job re-checkable via "View".
+					dashboardStore.updateAsyncJob(jobId, { status: 'stalled' });
 					stopPolling(jobId);
 					if (isForeground()) {
 						transcriptionError = m.db_transcribe_timeout();
@@ -335,6 +362,8 @@
 				}
 				// Transient network/server error — keep retrying until the cap.
 				if (attempts >= maxAttempts) {
+					// Same as the in_progress timeout: don't leave a perpetual spinner.
+					dashboardStore.updateAsyncJob(jobId, { status: 'stalled' });
 					stopPolling(jobId);
 					if (isForeground()) {
 						transcriptionError = err.message || m.error_unknown_transcription();
@@ -373,7 +402,14 @@
 		}
 
 		const apiKey = resolveApiKey(job);
-		if (!apiKey) return;
+		if (!apiKey) {
+			// No key to authenticate the re-fetch — surface an error instead of
+			// leaving the just-cleared view blank.
+			activeJobId = job.jobId;
+			selectedFileName = job.fileName;
+			transcriptionError = m.db_transcribe_check_api_key();
+			return;
+		}
 
 		loadingJobId = job.jobId;
 		try {
@@ -511,8 +547,18 @@
 		}
 	}
 
-	function fmtMSS(s) {
-		return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
+	// Format a number of seconds as H:MM:SS (or M:SS when under an hour), so long
+	// recordings don't render minutes >= 60 (e.g. a 75-minute mark as "1:15:00").
+	function fmtMSS(totalSeconds) {
+		const s = Math.max(0, Math.floor(totalSeconds));
+		const hours = Math.floor(s / 3600);
+		const minutes = Math.floor((s % 3600) / 60);
+		const seconds = s % 60;
+		const ss = String(seconds).padStart(2, '0');
+		if (hours > 0) {
+			return `${hours}:${String(minutes).padStart(2, '0')}:${ss}`;
+		}
+		return `${minutes}:${ss}`;
 	}
 
 	function handleDownloadTxt() {
@@ -748,8 +794,8 @@
 				<div class="transcribing-indicator">
 					<div class="spin-wrapper"><Loader2 size={48} color="#ccc" /></div>
 					<p>{m.db_transcribe_progress()}</p>
-					{#if selectedFile}
-						<p class="file-name-progress" title={selectedFile.name}>{selectedFile.name}</p>
+					{#if selectedFileName}
+						<p class="file-name-progress" title={selectedFileName}>{selectedFileName}</p>
 					{/if}
 					<p class="transcribing-note">{m.db_transcribe_progress_note_async()}</p>
 				</div>
@@ -859,7 +905,7 @@
 											<X size={14} />
 										</button>
 									{:else}
-										{#if job.status === 'complete' || job.status === 'in_progress'}
+										{#if job.status === 'complete' || job.status === 'in_progress' || job.status === 'stalled'}
 											<button
 												class="recent-btn"
 												on:click={() => viewJob(job)}
@@ -1509,6 +1555,9 @@
 	}
 	.status-expired {
 		color: #999;
+	}
+	.status-stalled {
+		color: #d9b866;
 	}
 	.recent-actions {
 		display: flex;

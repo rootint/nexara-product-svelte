@@ -77,8 +77,11 @@
 	function formatDuration(seconds) {
 		if (seconds == null) return '—';
 		if (seconds < 60) return `${seconds.toFixed(1)} s`;
-		const mins = Math.floor(seconds / 60);
-		const secs = Math.round(seconds % 60);
+		// Round to whole seconds first, then split, so we never render "60 s"
+		// (119.7s becomes 120s -> "2 m 0 s", not "1 m 60 s").
+		const totalSecs = Math.round(seconds);
+		const mins = Math.floor(totalSecs / 60);
+		const secs = totalSecs % 60;
 		return `${mins} m ${secs} s`;
 	}
 

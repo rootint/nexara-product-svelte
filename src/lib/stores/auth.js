@@ -69,18 +69,29 @@ function createAuthStore() {
 				if (error.message === 'Too many requests') {
 					throw new Error('Слишком много запросов. Пожалуйста, попробуйте позже.');
 				}
-				throw new Error('Такой email уже используется');
+				// The common case is a duplicate email; keep the friendly message for
+				// it, but surface the backend's actual reason (e.g. weak password) for
+				// everything else instead of masking every failure as "email taken".
+				const code = typeof error.detail === 'string' ? error.detail : error.detail?.code;
+				if (code === 'REGISTER_USER_ALREADY_EXISTS') {
+					throw new Error('Такой email уже используется');
+				}
+				if (error.message && error.message !== 'Auth request failed') {
+					throw new Error(error.message);
+				}
+				throw new Error('Не удалось зарегистрироваться. Пожалуйста, попробуйте позже.');
 			}
 		},
 
 		// Logout action
 		logout() {
 			localStorage.removeItem('auth_token');
-			// Drop any cached per-user data so it can't be shown to the next user
-			// who signs in on this browser.
+			// Drop any cached per-user data (usage history + full transcription
+			// text/results) so it can't be shown to the next user who signs in on
+			// this browser.
 			for (let i = localStorage.length - 1; i >= 0; i--) {
 				const key = localStorage.key(i);
-				if (key && key.startsWith('nexara_usage_history')) {
+				if (key && (key.startsWith('nexara_usage_history') || key === 'nexara_async_jobs')) {
 					localStorage.removeItem(key);
 				}
 			}

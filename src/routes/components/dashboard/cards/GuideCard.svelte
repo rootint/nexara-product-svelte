@@ -1,75 +1,56 @@
 <script>
-	import { onMount } from 'svelte';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { Check, Copy, Eye, RefreshCcw, UploadCloud } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
-	import { languageTag } from '$lib/paraglide/runtime.js';
+	import { Check, Copy } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages.js';
 
-	import n8n from '$lib/assets/n8n.jpg';
-	import binary from '$lib/assets/binary.jpg';
+	const DOCS_URL = 'https://docs.nexara.ru';
+	const PYTHON_INSTALL = 'pip install nexara';
+	const TS_INSTALL = 'npm install nexara-sdk';
+	const N8N_PACKAGE = 'n8n-nodes-nexara';
 
-	let selectedGuide = 'n8n'; // Default selection
-	let isCurlCopied = false;
-	let isPythonCopied = false; // Add state for python code copy
+	let selectedGuide = 'python'; // Default selection: Python SDK
+	let copiedId = null;
 
 	$: apiKey = $dashboardStore.apiKeys?.[0]?.api_key || 'YOUR_API_KEY';
+	// Full key for the copy-to-clipboard action; masked variant for on-screen display.
+	$: maskedKey =
+		apiKey !== 'YOUR_API_KEY' ? apiKey.slice(0, 5) + '••••••••••••••••••••••••' : 'YOUR_API_KEY';
 
-	$: pythonCode = `import requests
+	$: pythonCode = `from nexara import Nexara
 
-url = "https://api.nexara.ru/api/v1/audio/transcriptions"
-api_key = "${apiKey}" # Your actual API key is inserted here
+client = Nexara(api_key="${apiKey}")
 
-headers = {
-    "Authorization": f"Bearer {api_key}",
-}
+text = client.transcriptions.create(file="audio.mp3").text
+print(text)`;
+	$: pythonCodeDisplay = `from nexara import Nexara
 
-file_path = "audio/example.mp3" # Make sure this path is correct
+client = Nexara(api_key="${maskedKey}")
 
-with open(file_path, "rb") as audio_file:
-    files = {
-        "file": (file_path, audio_file, "audio/mpeg"), # Use 'audio/mpeg' for MP3
-    }
-    data = {
-        "response_format": "verbose_json", # Other options: 'json', 'text', 'srt', 'vtt'
-    }
+text = client.transcriptions.create(file="audio.mp3").text
+print(text)`;
 
-    response = requests.post(url, headers=headers, files=files, data=data)
+	$: tsCode = `import { Nexara } from "nexara-sdk";
 
-    if response.status_code == 200:
-        transcription = response.json()
-        print(transcription)
-    else:
-        print(f"Error: {response.status_code}")
-        print(response.text)`;
+const client = new Nexara({ apiKey: "${apiKey}" });
 
-	$: pythonCodeDisplay = pythonCode.replace(
-		`api_key = "${apiKey}"`,
-		`api_key = "${apiKey ? apiKey.slice(0, 5) + '••••••••••••••••••••••••' : 'YOUR_API_KEY'}"`
-	);
+const { text } = await client.transcriptions.create({ file: "audio.mp3" });
+console.log(text);`;
+	$: tsCodeDisplay = `import { Nexara } from "nexara-sdk";
 
-	async function handleCopyPython() {
+const client = new Nexara({ apiKey: "${maskedKey}" });
+
+const { text } = await client.transcriptions.create({ file: "audio.mp3" });
+console.log(text);`;
+
+	async function copyText(text, id) {
 		try {
-			await navigator.clipboard.writeText(pythonCode);
-			isPythonCopied = true;
-			setTimeout(() => (isPythonCopied = false), 2000); // Reset after 2 seconds
+			await navigator.clipboard.writeText(text);
+			copiedId = id;
+			setTimeout(() => {
+				if (copiedId === id) copiedId = null;
+			}, 2000);
 		} catch (err) {
-			console.error('Failed to copy Python code:', err);
-		}
-	}
-
-	async function handleCopyCurl() {
-		const curlCommand = `curl --request POST \\
-  --url https://api.nexara.ru/api/v1/audio/transcriptions \\
-  --header 'Authorization: Bearer ${apiKey}' \\
-  --header 'Content-Type: multipart/form-data'`;
-
-		try {
-			await navigator.clipboard.writeText(curlCommand);
-			isCurlCopied = true;
-			setTimeout(() => (isCurlCopied = false), 2000); // Reset after 2 seconds
-		} catch (err) {
-			console.error('Failed to copy cURL command:', err);
+			console.error('Failed to copy code:', err);
 		}
 	}
 </script>
@@ -81,88 +62,72 @@ with open(file_path, "rb") as audio_file:
 		</div>
 		<div class="guide-selector">
 			<select bind:value={selectedGuide}>
+				<option value="python">Python SDK</option>
+				<option value="typescript">TypeScript SDK</option>
 				<option value="n8n">n8n</option>
-				<option value="python requests">Python Requests</option>
-				<!-- <option value="openai python">OpenAI Python</option> -->
 			</select>
 		</div>
 	</div>
 	<div style="height: 24px;"></div>
 
 	<div class="guide-content">
-		{#if selectedGuide === 'n8n'}
-			<p>{m.db_guide_n8n_step_1()}</p>
-			<img src={n8n} alt="n8n HTTP Request node setup" class="guide-image" />
-			<p>{m.db_guide_n8n_step_2()}</p>
+		{#if selectedGuide === 'python'}
+			<p>{m.db_guide_py_install()}</p>
 			<div class="code-block-card">
-				<button class="copy-btn-code" on:click={handleCopyCurl}>
-					{#if isCurlCopied}
-						<Check size={16} />
-					{:else}
-						<Copy size={16} />
-					{/if}
+				<button class="copy-btn-code" on:click={() => copyText(PYTHON_INSTALL, 'py-install')}>
+					{#if copiedId === 'py-install'}<Check size={16} />{:else}<Copy size={16} />{/if}
 				</button>
-				<pre><code
-						>curl --request POST \
-  --url https://api.nexara.ru/api/v1/audio/transcriptions \
-  --header 'Authorization: Bearer {apiKey !== 'YOUR_API_KEY'
-							? apiKey.slice(0, 5) + '••••••••••••••••••••••••'
-							: 'YOUR_API_KEY'}' \
-  --header 'Content-Type: multipart/form-data'</code
-					></pre>
+				<pre><code>{PYTHON_INSTALL}</code></pre>
 			</div>
-			<p>{m.db_guide_n8n_step_3()}</p>
-			<img src={binary} alt="n8n Body Parameters setup" class="guide-image" />
-			<p>
-				{m.db_guide_n8n_step_4()}
-				<a
-					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru'
-						: 'https://docs.nexara.ru'}
-					target="_blank">{m.db_guide_n8n_step_4_docs()}</a
-				>
-			</p>
-		{:else if selectedGuide === 'openai python'}
-			<p>{m.db_guide_python_step_1()}</p>
+			<p>{m.db_guide_py_code()}</p>
 			<div class="code-block-card">
-				<button class="copy-btn-code" on:click={handleCopyPython}>
-					{#if isPythonCopied}
-						<Check size={16} />
-					{:else}
-						<Copy size={16} />
-					{/if}
+				<button class="copy-btn-code" on:click={() => copyText(pythonCode, 'py-code')}>
+					{#if copiedId === 'py-code'}<Check size={16} />{:else}<Copy size={16} />{/if}
 				</button>
 				<pre><code>{pythonCodeDisplay}</code></pre>
 			</div>
 			<p>
-				{m.db_guide_python_step_2()}
-				<a
-					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru'
-						: 'https://docs.nexara.ru'}
-					target="_blank">{m.db_guide_python_step_2_docs()}</a
-				>
+				{m.db_guide_done_docs()}
+				<a href={DOCS_URL} target="_blank" rel="noopener">{m.db_guide_python_step_2_docs()}</a>
 			</p>
-		{:else if selectedGuide === 'python requests'}
-			<p>{m.db_guide_python_step_1()}</p>
+		{:else if selectedGuide === 'typescript'}
+			<p>{m.db_guide_ts_install()}</p>
 			<div class="code-block-card">
-				<button class="copy-btn-code" on:click={handleCopyPython}>
-					{#if isPythonCopied}
-						<Check size={16} />
-					{:else}
-						<Copy size={16} />
-					{/if}
+				<button class="copy-btn-code" on:click={() => copyText(TS_INSTALL, 'ts-install')}>
+					{#if copiedId === 'ts-install'}<Check size={16} />{:else}<Copy size={16} />{/if}
 				</button>
-				<pre><code>{pythonCodeDisplay}</code></pre>
+				<pre><code>{TS_INSTALL}</code></pre>
+			</div>
+			<p>{m.db_guide_ts_code()}</p>
+			<div class="code-block-card">
+				<button class="copy-btn-code" on:click={() => copyText(tsCode, 'ts-code')}>
+					{#if copiedId === 'ts-code'}<Check size={16} />{:else}<Copy size={16} />{/if}
+				</button>
+				<pre><code>{tsCodeDisplay}</code></pre>
 			</div>
 			<p>
-				{m.db_guide_python_step_2()}
-				<a
-					href={languageTag() === 'ru'
-						? 'https://docs.nexara.ru'
-						: 'https://docs.nexara.ru'}
-					target="_blank">{m.db_guide_python_step_2_docs()}</a
-				>
+				{m.db_guide_done_docs()}
+				<a href={DOCS_URL} target="_blank" rel="noopener">{m.db_guide_python_step_2_docs()}</a>
+			</p>
+		{:else if selectedGuide === 'n8n'}
+			<p>{m.db_guide_n8n_install()}</p>
+			<div class="code-block-card">
+				<button class="copy-btn-code" on:click={() => copyText(N8N_PACKAGE, 'n8n-pkg')}>
+					{#if copiedId === 'n8n-pkg'}<Check size={16} />{:else}<Copy size={16} />{/if}
+				</button>
+				<pre><code>{N8N_PACKAGE}</code></pre>
+			</div>
+			<p>{m.db_guide_n8n_credential()}</p>
+			<div class="code-block-card">
+				<button class="copy-btn-code" on:click={() => copyText(apiKey, 'n8n-key')}>
+					{#if copiedId === 'n8n-key'}<Check size={16} />{:else}<Copy size={16} />{/if}
+				</button>
+				<pre><code>{maskedKey}</code></pre>
+			</div>
+			<p>{m.db_guide_n8n_usage()}</p>
+			<p>
+				{m.db_guide_done_docs()}
+				<a href={DOCS_URL} target="_blank" rel="noopener">{m.db_guide_n8n_step_4_docs()}</a>
 			</p>
 		{/if}
 	</div>
@@ -191,12 +156,6 @@ with open(file_path, "rb") as audio_file:
 
 	.guide-content a:hover {
 		text-decoration: underline;
-	}
-
-	.guide-image {
-		width: 100%;
-		border-radius: 12px;
-		display: block; /* Prevent extra space below image */
 	}
 
 	.code-block-card {

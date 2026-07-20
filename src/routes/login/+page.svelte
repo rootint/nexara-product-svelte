@@ -37,9 +37,11 @@
 		}
 	}
 
-	// TODO: redirect to dashboard if the user is already logged on,
-	// but also check for token expiration
+	// Redirect to the dashboard if the user is already logged in. initialize()
+	// hydrates the store from the persisted token — without it, isAuthenticated
+	// is always false here (it's only initialized inside the app layout).
 	onMount(() => {
+		authStore.initialize();
 		if ($authStore.isAuthenticated) {
 			if (languageTag() === 'ru') {
 				goto('/');

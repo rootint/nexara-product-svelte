@@ -291,4 +291,17 @@
 		border-radius: 12px;
 		border: 1px solid rgba(250, 250, 250, 0.11);
 	}
+
+	@media (max-width: 600px) {
+		/* Keep the quick-amount buttons in a row but drop the helper text onto its
+		   own full-width line below them, instead of getting squeezed to the side. */
+		.fast-buttons-row {
+			flex-wrap: wrap;
+		}
+		.fast-buttons-subtitle {
+			width: 100%;
+			margin-top: 8px;
+			text-align: center;
+		}
+	}
 </style>

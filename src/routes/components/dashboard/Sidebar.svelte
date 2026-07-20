@@ -1,9 +1,29 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LogOut, MessageCircleQuestion, Rss, AudioLines, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Activity, AudioLines, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+
+	const STATUS_URL = 'https://status.nexara.ru';
+
+	// Live platform status pill. Fails silent: if the request errors, `status`
+	// stays null and the pill simply doesn't render.
+	const STATUS_COLOR = {
+		operational: 'var(--brand-mint)',
+		degraded: 'var(--brand-amber)',
+		outage: 'var(--brand-red)',
+		maintenance: 'var(--brand-blue)'
+	};
+
+	let status = null;
+	onMount(() => {
+		fetch(`${STATUS_URL}/api/state.json`)
+			.then((r) => r.json())
+			.then((s) => (status = s))
+			.catch(() => {});
+	});
 
 	// Regex to check for root path with optional language prefix
 	const rootPathRegex = /^(\/en|\/ru)?\/?$/;
@@ -94,13 +114,21 @@
 	</div>
 	<div class="bottom-sections">
 		<a
-			href="https://nexara.ru/releases"
+			href={STATUS_URL}
 			target="_blank"
 			rel="noopener noreferrer"
 			class="section-link-bottom"
 		>
-			<Rss></Rss>
-			<p>{m.db_sidebar_blog()}</p>
+			<Activity></Activity>
+			<p>{m.db_sidebar_status()}</p>
+			{#if status}
+				<span
+					class="status-dot"
+					style:background={STATUS_COLOR[status.state] ?? 'rgba(255, 255, 255, 0.4)'}
+					title={status.label}
+					aria-label={status.label}
+				></span>
+			{/if}
 		</a>
 		<a
 			href="https://docs.nexara.ru"
@@ -139,12 +167,20 @@
 	}
 	.section-link-bottom {
 		display: flex;
+		align-items: center;
 		text-decoration: none;
 		gap: 12px;
 		padding: 16px 32px;
 	}
 	.section-link-bottom:hover {
 		text-decoration: underline;
+	}
+	.status-dot {
+		width: 8px;
+		height: 8px;
+		margin-left: auto;
+		border-radius: 50%;
+		flex-shrink: 0;
 	}
 	.bottom-sections {
 		border-top: 1px solid rgba(255, 255, 255, 0.11);

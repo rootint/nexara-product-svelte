@@ -7,6 +7,7 @@
 	let historyData = null;
 	let historyLoading = false;
 	let historyFromCache = false;
+	let historyFetched = false;
 
 	onMount(async () => {
 		if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0) {
@@ -14,11 +15,15 @@
 		}
 	});
 
-	$: if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0 && !historyData && !historyLoading) {
+	$: if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0 && !historyFetched) {
 		fetchHistory();
 	}
 
 	async function fetchHistory() {
+		if (historyFetched) return;
+		// Claim synchronously so onMount and the reactive trigger can't both fire,
+		// and a failed fetch doesn't re-fire on every store update (retry storm).
+		historyFetched = true;
 		historyLoading = true;
 		try {
 			const result = await dashboardStore.getHistory(30);

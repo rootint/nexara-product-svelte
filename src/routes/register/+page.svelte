@@ -32,14 +32,8 @@
 			// Wait for registration to complete successfully
 			await authStore.register(email, password, location);
 		} catch (e) {
-			// Check if error object has a specific detail field from API response
-			if (e.response && e.response.data && e.response.data.detail) {
-				error = e.response.data.detail;
-			} else if (e.message) {
-				error = e.message; // Use message from thrown Error or other generic errors
-			} else {
-				error = 'Произошла неизвестная ошибка при регистрации.'; // Fallback error
-			}
+			// authStore.register throws a plain Error with a user-facing message.
+			error = e.message || 'Произошла неизвестная ошибка при регистрации.';
 		}
 	}
 </script>

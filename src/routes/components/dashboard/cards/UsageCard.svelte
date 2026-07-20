@@ -13,6 +13,9 @@
 
 	async function fetchHistory() {
 		if (hasFetched) return;
+		// Claim the fetch synchronously so onMount and the reactive trigger can't
+		// both fire it, and a failure doesn't re-fire it on every store update.
+		hasFetched = true;
 
 		try {
 			isLoading = true;
@@ -21,7 +24,6 @@
 			usageData = result.data;
 			fromCache = result.fromCache;
 			cachedAt = result.cachedAt;
-			hasFetched = true;
 		} catch (err) {
 			error = err.message;
 		} finally {

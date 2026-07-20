@@ -12,7 +12,7 @@
 
 	async function handleCreateApiKey() {
 		try {
-			await dashboardStore.createApiKey();
+			await dashboardStore.createApiKey($dashboardStore.location);
 			await dashboardStore.loadDashboardData();
 		} catch (error) {
 			// Handle UI-specific error presentation

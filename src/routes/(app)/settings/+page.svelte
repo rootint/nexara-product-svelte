@@ -92,104 +92,108 @@
 
 <div class="main-container">
 	<div class="card-cols">
-		<div class="card">
-			<div class="card-header">
-				<p class="card-title">Смена пароля</p>
-			</div>
-			<form on:submit|preventDefault={handleChangePassword}>
-				<p class="label">Текущий пароль</p>
-				<input
-					type="password"
-					bind:value={currentPassword}
-					placeholder="Введите текущий пароль"
-					required
-				/>
-				<p class="label">Новый пароль</p>
-				<input
-					type="password"
-					bind:value={newPassword}
-					placeholder="Введите новый пароль"
-					required
-				/>
-				{#if error}
-					<p class="error">{error}</p>
-				{/if}
-				{#if success}
-					<p class="success">Пароль успешно изменён</p>
-				{/if}
-				<button type="submit" class="save-btn" disabled={loading}>
-					<p class="btn-text">{loading ? 'Сохранение...' : 'Сменить пароль'}</p>
-				</button>
-			</form>
-		</div>
-
-		<div class="card">
-			<div class="card-header">
-				<p class="card-title">Уведомление о низком балансе</p>
-			</div>
-			<form on:submit|preventDefault={handleSaveNotify}>
-				<p class="balance">
-					Текущий баланс: {$dashboardStore.credits.toLocaleString(
-						$dashboardStore.location === 'ru' ? 'ru-RU' : 'en-GB',
-						{ minimumFractionDigits: 0, maximumFractionDigits: 2 }
-					)}
-					{currency}
-				</p>
-				<p class="hint">
-					{#if syncedThreshold === null}
-						Уведомления сейчас выключены.
-					{:else}
-						Уведомление придёт, когда баланс опустится до {syncedThreshold} {currency}.
+		<div class="card-col">
+			<div class="card">
+				<div class="card-header">
+					<p class="card-title">Смена пароля</p>
+				</div>
+				<form on:submit|preventDefault={handleChangePassword}>
+					<p class="label">Текущий пароль</p>
+					<input
+						type="password"
+						bind:value={currentPassword}
+						placeholder="Введите текущий пароль"
+						required
+					/>
+					<p class="label">Новый пароль</p>
+					<input
+						type="password"
+						bind:value={newPassword}
+						placeholder="Введите новый пароль"
+						required
+					/>
+					{#if error}
+						<p class="error">{error}</p>
 					{/if}
+					{#if success}
+						<p class="success">Пароль успешно изменён</p>
+					{/if}
+					<button type="submit" class="save-btn" disabled={loading}>
+						<p class="btn-text">{loading ? 'Сохранение...' : 'Сменить пароль'}</p>
+					</button>
+				</form>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<p class="card-title">Хранение транскрибаций</p>
+				</div>
+				<p class="hint">
+					Результаты транскрибаций из дашборда сохраняются локально в этом браузере, чтобы вы могли
+					открывать их даже после того, как сервер удалит их (через 12 часов). Здесь можно настроить
+					автоматическое удаление локальной копии. Настройка хранится только на этом устройстве и не
+					влияет на другие браузеры.
 				</p>
-
-				<label class="checkbox-row">
-					<input type="checkbox" bind:checked={notifyEnabled} />
-					<span>Уведомлять по email при низком балансе</span>
-				</label>
-
-				<p class="label">Порог ({currency})</p>
-				<input
-					type="number"
-					min="0"
-					step="any"
-					bind:value={notifyAmount}
-					placeholder="Например, 500"
-					disabled={!notifyEnabled}
-				/>
-
-				{#if notifyError}
-					<p class="error">{notifyError}</p>
-				{/if}
-				{#if notifySuccess}
+				<p class="label">Автоматически удалять</p>
+				<select bind:value={retention} on:change={handleRetentionChange}>
+					<option value="1d">Через 1 день</option>
+					<option value="7d">Через 7 дней</option>
+					<option value="30d">Через 30 дней</option>
+					<option value="never">Никогда</option>
+				</select>
+				{#if retentionSaved}
 					<p class="success">Настройка сохранена</p>
 				{/if}
-				<button type="submit" class="save-btn" disabled={notifyLoading}>
-					<p class="btn-text">{notifyLoading ? 'Сохранение...' : 'Сохранить'}</p>
-				</button>
-			</form>
+			</div>
 		</div>
 
-		<div class="card">
-			<div class="card-header">
-				<p class="card-title">Хранение транскрибаций</p>
+		<div class="card-col">
+			<div class="card">
+				<div class="card-header">
+					<p class="card-title">Уведомление о низком балансе</p>
+				</div>
+				<form on:submit|preventDefault={handleSaveNotify}>
+					<p class="balance">
+						Текущий баланс: {$dashboardStore.credits.toLocaleString(
+							$dashboardStore.location === 'ru' ? 'ru-RU' : 'en-GB',
+							{ minimumFractionDigits: 0, maximumFractionDigits: 2 }
+						)}
+						{currency}
+					</p>
+					<p class="hint">
+						{#if syncedThreshold === null}
+							Уведомления сейчас выключены.
+						{:else}
+							Уведомление придёт, когда баланс опустится до {syncedThreshold} {currency}.
+						{/if}
+					</p>
+
+					<label class="checkbox-row">
+						<input type="checkbox" bind:checked={notifyEnabled} />
+						<span>Уведомлять по email при низком балансе</span>
+					</label>
+
+					<p class="label">Порог ({currency})</p>
+					<input
+						type="number"
+						min="0"
+						step="any"
+						bind:value={notifyAmount}
+						placeholder="Например, 500"
+						disabled={!notifyEnabled}
+					/>
+
+					{#if notifyError}
+						<p class="error">{notifyError}</p>
+					{/if}
+					{#if notifySuccess}
+						<p class="success">Настройка сохранена</p>
+					{/if}
+					<button type="submit" class="save-btn" disabled={notifyLoading}>
+						<p class="btn-text">{notifyLoading ? 'Сохранение...' : 'Сохранить'}</p>
+					</button>
+				</form>
 			</div>
-			<p class="hint">
-				Результаты транскрибаций из дашборда сохраняются локально в этом браузере, чтобы вы могли
-				открывать их даже после того, как сервер удалит их (через 12 часов). Здесь можно настроить
-				автоматическое удаление локальной копии. Настройка хранится только на этом устройстве и не
-				влияет на другие браузеры.
-			</p>
-			<p class="label">Автоматически удалять</p>
-			<select bind:value={retention} on:change={handleRetentionChange}>
-				<option value="1d">Через 1 день</option>
-				<option value="7d">Через 7 дней</option>
-				<option value="30d">Через 30 дней</option>
-				<option value="never">Никогда</option>
-			</select>
-			{#if retentionSaved}
-				<p class="success">Настройка сохранена</p>
-			{/if}
 		</div>
 	</div>
 </div>
@@ -203,7 +207,13 @@
 	.card-cols {
 		display: flex;
 		gap: 32px;
-		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+	.card-col {
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+		width: 50%;
 	}
 	.card {
 		background-color: rgba(250, 250, 250, 0.01);
@@ -213,6 +223,7 @@
 		display: flex;
 		flex-direction: column;
 		width: 100%;
+		box-sizing: border-box;
 	}
 	.card-header {
 		margin-bottom: 24px;
@@ -223,6 +234,11 @@
 	form {
 		display: flex;
 		flex-direction: column;
+		/* The card uses align-items: start, so the form shrink-wraps to its widest
+		   child (the 480px input). Cap it to the card width so it (and the
+		   full-width submit button) can't overflow on narrow screens; on desktop
+		   the form still sizes to the 480px inputs. */
+		max-width: 100%;
 	}
 	.label {
 		margin-bottom: 8px;
@@ -252,6 +268,7 @@
 	}
 	input {
 		width: 480px; /* adjust to taste */
+		max-width: 100%;
 		border: 1px solid rgba(250, 250, 250, 0.11);
 		border-radius: 12px;
 		padding: 16px 24px;
@@ -315,5 +332,14 @@
 		color: rgba(100, 220, 100, 0.9);
 		font-size: 14px;
 		margin-bottom: 8px;
+	}
+
+	@media (max-width: 1300px) {
+		.card-cols {
+			flex-direction: column;
+		}
+		.card-col {
+			width: 100%;
+		}
 	}
 </style>

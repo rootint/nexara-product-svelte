@@ -40,15 +40,18 @@ function createDashboardStore() {
 	// resume polling in-progress ones across reloads. All local to this browser.
 	const ASYNC_JOBS_KEY = 'nexara_async_jobs';
 	// Local auto-delete preference for cached transcriptions: '1d' | '7d' | '30d' | 'never'.
+	// Default to a finite window so full transcript text doesn't linger on shared
+	// machines indefinitely; users can opt into 'never' explicitly in settings.
 	const RETENTION_KEY = 'nexara_transcript_retention';
 	const RETENTION_DAYS = { '1d': 1, '7d': 7, '30d': 30 };
+	const DEFAULT_RETENTION = '7d';
 
 	// Drop jobs older than the local retention window (based on completion, or
 	// submission time as a fallback). 'never'/unknown keeps everything.
 	function pruneByRetention(jobs) {
-		let retention = 'never';
+		let retention = DEFAULT_RETENTION;
 		try {
-			retention = localStorage.getItem(RETENTION_KEY) || 'never';
+			retention = localStorage.getItem(RETENTION_KEY) || DEFAULT_RETENTION;
 		} catch (e) {
 			/* ignore */
 		}
@@ -123,7 +126,11 @@ function createDashboardStore() {
 
 				update((state) => ({
 					...state,
-					apiKeys: result.api_keys || result,
+					apiKeys: Array.isArray(result.api_keys)
+						? result.api_keys
+						: Array.isArray(result)
+							? result
+							: state.apiKeys,
 					apiKeysLoading: false
 				}));
 
@@ -170,7 +177,10 @@ function createDashboardStore() {
 				const result = await api.makeRequest('/view_account', {
 					method: 'GET'
 				});
-				set({
+				// Merge onto existing state (not set()) so browser-local fields like
+				// asyncJobs survive a reload/refresh triggered by this call.
+				update((state) => ({
+					...state,
 					personalPrice: result.rate,
 					overdraft_limit: result.overdraft_limit ?? 0,
 					email: result.email,
@@ -185,7 +195,7 @@ function createDashboardStore() {
 					apiKeysLoading: false,
 					apiKeysError: null,
 					dataLoaded: true
-				});
+				}));
 				return true;
 			} catch (error) {
 				update((state) => ({
@@ -404,9 +414,9 @@ function createDashboardStore() {
 		// --- Local transcription retention preference ---
 		getTranscriptRetention() {
 			try {
-				return localStorage.getItem(RETENTION_KEY) || 'never';
+				return localStorage.getItem(RETENTION_KEY) || DEFAULT_RETENTION;
 			} catch (e) {
-				return 'never';
+				return DEFAULT_RETENTION;
 			}
 		},
 

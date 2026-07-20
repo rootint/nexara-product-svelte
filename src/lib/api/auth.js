@@ -19,7 +19,25 @@ export class AuthApi {
 			throw new Error('Too many requests');
 		}
 		if (!response.ok) {
-			throw new Error('Auth request failed');
+			// Surface the backend's reason (FastAPI-style `detail`) and status so
+			// callers can distinguish e.g. "email already exists" from a weak
+			// password or a server error, instead of collapsing them all.
+			let detail;
+			try {
+				detail = (await response.json())?.detail;
+			} catch (e) {
+				// non-JSON error body — leave detail undefined
+			}
+			const message =
+				typeof detail === 'string'
+					? detail
+					: typeof detail?.reason === 'string'
+						? detail.reason
+						: 'Auth request failed';
+			const error = new Error(message);
+			error.status = response.status;
+			error.detail = detail;
+			throw error;
 		}
 		return response.json();
 	}

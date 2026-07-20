@@ -157,7 +157,6 @@
 		transcriptionError = null;
 		parsedSubtitles = null;
 		copyButtonText = m.db_transcribe_copy(); // Reset copy button text
-		console.log('Selected file:', selectedFile);
 	}
 
 	function triggerFileInput() {

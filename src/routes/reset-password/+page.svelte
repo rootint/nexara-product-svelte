@@ -53,7 +53,7 @@
 		{#if status === 'ok'}
 			<h2>Пароль изменён</h2>
 			<p class="hint">Вы можете войти с новым паролем.</p>
-			<button type="button" on:click={() => goto(languageTag === 'ru' ? '/login' : '/en/login')}>
+			<button type="button" on:click={() => goto(languageTag() === 'ru' ? '/login' : '/en/login')}>
 				<p class="btn-text">Войти</p>
 			</button>
 		{:else}

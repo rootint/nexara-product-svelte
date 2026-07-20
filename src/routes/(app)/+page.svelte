@@ -22,7 +22,6 @@
 				};
 				
 				localStorage.setItem('landing_page_metrics', JSON.stringify(paramsWithMetadata));
-				console.log('Stored query parameters for metrics:', paramsWithMetadata);
 			}
 		}
 	}

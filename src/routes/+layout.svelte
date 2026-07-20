@@ -7,6 +7,7 @@
 	import { dashboardStore } from '$lib/stores/dashboard';
 
 	import './styles.css';
+	import MountainRidge from './components/MountainRidge.svelte';
 
 	$: {
 		if (browser && $dashboardStore.location && $page.url.pathname) {
@@ -28,6 +29,7 @@
 </script>
 
 <div class="gradient-bar" aria-hidden="true"></div>
+<MountainRidge />
 
 <ParaglideJS {i18n}>
 	<div class="app">

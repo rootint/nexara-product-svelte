@@ -61,6 +61,10 @@
 	flex-direction: column;
 	margin: 0 auto;
 	/* padding: 0px 16px; */
+
+	/* Clear the fixed gradient bar at the top of the viewport. Adjust the gap by
+	   changing --top-gradient-height (defined in :root above). */
+	margin-top: var(--top-gradient-height);
 }
 
 body {

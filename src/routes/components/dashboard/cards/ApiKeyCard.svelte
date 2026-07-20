@@ -25,7 +25,6 @@
 			try {
 				await navigator.clipboard.writeText($dashboardStore.apiKey);
 				// Optional: Show a success message or change the button text briefly
-				console.log('API Key copied to clipboard!');
 				isKeyCopied = true;
 			} catch (err) {
 				console.error('Failed to copy API Key:', err);
@@ -55,7 +54,6 @@
 			}
 		} else {
 			// User clicked "Cancel" - do nothing
-			console.log('API key change cancelled.');
 		}
 	}
 </script>

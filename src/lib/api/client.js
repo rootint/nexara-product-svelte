@@ -1,4 +1,14 @@
 // src/lib/api/client.js
+import { goto } from '$app/navigation';
+import { languageTag } from '$lib/paraglide/runtime.js';
+
+// Clear the expired session and send the user back to login. Called whenever a
+// session-authenticated request comes back 401 (token expired or revoked).
+function handleSessionExpiry() {
+	localStorage.removeItem('auth_token');
+	goto(languageTag() === 'ru' ? '/login' : '/en/login');
+}
+
 export class ApiClient {
 	constructor(baseUrl) {
 		this.baseUrl = baseUrl;
@@ -7,7 +17,6 @@ export class ApiClient {
 	// This method automatically injects the token into every request
 	async makeRequest(endpoint, options = {}, body = null, form = null) {
 		const token = localStorage.getItem('auth_token');
-		console.log(body);
 
 		const headers = {
 			...options.headers,
@@ -36,10 +45,9 @@ export class ApiClient {
 
 		if (!response.ok) {
 			if (response.status === 401) {
-				// Token expired or invalid - redirect to login
-				// goto('/login');
-				throw new Error('API request failed');
-				return { error: 401 };
+				// Session token expired or invalid - clear it and redirect to login.
+				handleSessionExpiry();
+				throw new Error('Session expired');
 			}
 			throw new Error('API request failed');
 		}

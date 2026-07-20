@@ -32,7 +32,7 @@ function createAuthStore() {
 					token,
 					user: email // Or decode JWT for more user info
 				});
-				if (languageTag === 'ru') {
+				if (languageTag() === 'ru') {
 					goto('/');
 				} else {
 					goto('/en');
@@ -66,7 +66,6 @@ function createAuthStore() {
 				await authApi.register(email, password, location, source);
 				return this.login(email, password);
 			} catch (error) {
-        console.log(error)
 				if (error.message === 'Too many requests') {
 					throw new Error('Слишком много запросов. Пожалуйста, попробуйте позже.');
 				}
@@ -77,12 +76,20 @@ function createAuthStore() {
 		// Logout action
 		logout() {
 			localStorage.removeItem('auth_token');
+			// Drop any cached per-user data so it can't be shown to the next user
+			// who signs in on this browser.
+			for (let i = localStorage.length - 1; i >= 0; i--) {
+				const key = localStorage.key(i);
+				if (key && key.startsWith('nexara_usage_history')) {
+					localStorage.removeItem(key);
+				}
+			}
 			set({
 				isAuthenticated: false,
 				user: null,
 				token: null
 			});
-			if (languageTag === 'ru') {
+			if (languageTag() === 'ru') {
 				goto('/login');
 			} else {
 				goto('/en/login');

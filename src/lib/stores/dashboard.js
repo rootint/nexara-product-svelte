@@ -3,6 +3,18 @@ import { writable } from 'svelte/store';
 import { env } from '$env/dynamic/public';
 import { ApiClient } from '$lib/api/client';
 
+// Short, stable per-user fingerprint derived from the auth token. Used to
+// namespace browser-local caches so one user's data can't be read back by the
+// next user who signs in on the same browser. Not security-sensitive — it only
+// needs to differ between users, so a simple non-cryptographic hash is fine.
+function hashToken(token) {
+	let h = 0;
+	for (let i = 0; i < token.length; i++) {
+		h = (Math.imul(31, h) + token.charCodeAt(i)) | 0;
+	}
+	return (h >>> 0).toString(36);
+}
+
 function createDashboardStore() {
 	const { subscribe, set, update } = writable({
 		email: null,
@@ -94,7 +106,6 @@ function createDashboardStore() {
 				if (metricsData) {
 					const parsedMetrics = JSON.parse(metricsData);
 					formData.append('source', JSON.stringify(parsedMetrics));
-					console.log('Sending metrics data with API key creation:', parsedMetrics);
 				}
 			} catch (error) {
 				console.warn('Failed to retrieve or parse metrics data:', error);
@@ -159,7 +170,6 @@ function createDashboardStore() {
 				const result = await api.makeRequest('/view_account', {
 					method: 'GET'
 				});
-				console.log('result', result);
 				set({
 					personalPrice: result.rate,
 					overdraft_limit: result.overdraft_limit ?? 0,
@@ -178,7 +188,6 @@ function createDashboardStore() {
 				});
 				return true;
 			} catch (error) {
-				console.log(error);
 				update((state) => ({
 					...state,
 					error: error.message,
@@ -461,13 +470,16 @@ function createDashboardStore() {
 		},
 
 		async getHistory(nDays = 30) {
-			const CACHE_KEY = 'nexara_usage_history';
-			const CACHE_TIMESTAMP_KEY = 'nexara_usage_history_timestamp';
-
 			const token = localStorage.getItem('auth_token');
 			if (!token) {
 				throw new Error('Auth token not found');
 			}
+
+			// Scope the cache to the current user's token so a rate-limit/offline
+			// fallback can never surface a previous user's data on this browser.
+			const userScope = hashToken(token);
+			const CACHE_KEY = `nexara_usage_history_${userScope}`;
+			const CACHE_TIMESTAMP_KEY = `nexara_usage_history_timestamp_${userScope}`;
 
 			try {
 				const response = await fetch(`${api.baseUrl}/get_history/${nDays}`, {

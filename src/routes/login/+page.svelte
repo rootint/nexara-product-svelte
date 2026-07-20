@@ -41,7 +41,7 @@
 	// but also check for token expiration
 	onMount(() => {
 		if ($authStore.isAuthenticated) {
-			if (languageTag === 'ru') {
+			if (languageTag() === 'ru') {
 				goto('/');
 			} else {
 				goto('/en');

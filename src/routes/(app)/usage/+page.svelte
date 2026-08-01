@@ -178,6 +178,7 @@
 							<th class="num">{m.usage_col_size()}</th>
 							<th>{m.usage_col_profanity()}</th>
 							<th>{m.usage_col_role_tagging()}</th>
+							<th>{m.usage_col_emotions()}</th>
 							<th class="num">{m.usage_col_llm_in()}</th>
 							<th class="num">{m.usage_col_llm_out()}</th>
 							<th>{m.usage_col_key()}</th>
@@ -196,6 +197,7 @@
 								<td class="num">{formatBytes(item.bytes)}</td>
 								<td>{formatProfanityFilter(item.profanity_filter)}</td>
 								<td>{formatProfanityFilter(item.role_tagging)}</td>
+								<td>{formatProfanityFilter(item.emotions)}</td>
 								<td class="num">{formatTokens(item.llm_input_tokens)}</td>
 								<td class="num">{formatTokens(item.llm_output_tokens)}</td>
 								<td>
@@ -252,6 +254,11 @@
 							<div>
 								<span class="rc-label">{m.usage_col_role_tagging()}</span>{formatProfanityFilter(
 									item.role_tagging
+								)}
+							</div>
+							<div>
+								<span class="rc-label">{m.usage_col_emotions()}</span>{formatProfanityFilter(
+									item.emotions
 								)}
 							</div>
 							<div>

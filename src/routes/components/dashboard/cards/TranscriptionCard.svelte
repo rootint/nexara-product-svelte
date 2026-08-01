@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { parseSrt, formatDurationHMS, parseSrtTimeToSeconds } from '$lib/utils/subtitles';
+	import { parseSrt, parseSrtTimeToSeconds } from '$lib/utils/subtitles';
 	import {
 		UploadCloud,
 		File as FileIcon,
@@ -141,40 +141,78 @@
 		}
 	}
 
-	// The result view renders subtitles parsed out of the SRT, but the emotion
-	// object hangs off the verbose_json segments — and the SRT chunker merges
-	// very short segments, so the two lists are not index-aligned. Match each
-	// subtitle to the scored segment it overlaps in time the most.
-	function buildEmotionMap(subtitles, segments) {
-		const map = new Map();
-		if (!Array.isArray(subtitles) || !Array.isArray(segments)) return map;
+	// Speaker chip palette, handed out in order of first appearance. Deliberately
+	// clear of the emotion hues (red/blue/green/grey) so the two pills sitting
+	// next to each other never read as the same signal.
+	const SPEAKER_COLORS = [
+		{ fg: '#a78bfa', bg: 'rgba(167, 139, 250, 0.14)' },
+		{ fg: '#f0a868', bg: 'rgba(240, 168, 104, 0.14)' },
+		{ fg: '#5ecfd0', bg: 'rgba(94, 207, 208, 0.14)' },
+		{ fg: '#f28ab2', bg: 'rgba(242, 138, 178, 0.14)' },
+		{ fg: '#b6d97a', bg: 'rgba(182, 217, 122, 0.14)' },
+		{ fg: '#8fa8ff', bg: 'rgba(143, 168, 255, 0.14)' }
+	];
 
-		const scored = segments.filter((s) => emotionLabel(s?.emotion?.label));
-		if (!scored.length) return map;
-
-		for (const sub of subtitles) {
-			const start = parseSrtTimeToSeconds(sub.startTime);
-			const end = parseSrtTimeToSeconds(sub.endTime);
-			if (start == null || end == null) continue;
-
-			let best = null;
-			let bestOverlap = 0;
-			for (const seg of scored) {
-				const overlap = Math.min(end, seg.end ?? 0) - Math.max(start, seg.start ?? 0);
-				if (overlap > bestOverlap) {
-					bestOverlap = overlap;
-					best = seg;
-				}
-			}
-			if (best) map.set(sub.id, best.emotion);
-		}
-		return map;
+	// `speaker` is either a raw diarization id (`speaker_0`) or, once role
+	// tagging has run, an LLM-assigned label (`agent`, `agent_2`, `unknown`).
+	// Localize the first shape, humanize the second.
+	function speakerName(speaker) {
+		if (!speaker) return null;
+		const raw = String(speaker).trim();
+		if (!raw) return null;
+		const numbered = raw.match(/^speaker[\s_-]?(\d+)$/i);
+		if (numbered) return m.db_transcribe_speaker_n({ n: numbered[1] });
+		const humanized = raw.replace(/[_-]+/g, ' ').trim();
+		return humanized.charAt(0).toUpperCase() + humanized.slice(1);
 	}
 
-	$: emotionBySubtitle = buildEmotionMap(
-		parsedSubtitles,
-		transcriptionResult?.verbose_json?.segments
-	);
+	// Build the rows the result view renders. Diarized results come straight
+	// from the verbose_json segments: they carry `speaker` and `emotion` as real
+	// fields, while the SRT only has the speaker inlined into the text and no
+	// place at all for the emotion. Everything else falls back to the SRT, whose
+	// sentence chunking reads better than raw segments when there is no speaker
+	// to group by.
+	function buildDisplaySegments(result, subtitles) {
+		const verbose = result?.verbose_json;
+		const segments = verbose?.segments;
+		let rows;
+
+		if (verbose?.task === 'diarize' && Array.isArray(segments) && segments.length) {
+			rows = segments
+				.map((seg, i) => ({
+					id: i + 1,
+					start: seg?.start ?? 0,
+					end: seg?.end ?? 0,
+					text: (seg?.text || '').trim(),
+					speakerKey: seg?.speaker || null,
+					emotion: emotionLabel(seg?.emotion?.label) ? seg.emotion : null
+				}))
+				.filter((row) => row.text);
+		} else if (Array.isArray(subtitles)) {
+			rows = subtitles.map((sub) => ({
+				id: sub.id,
+				start: parseSrtTimeToSeconds(sub.startTime) ?? 0,
+				end: parseSrtTimeToSeconds(sub.endTime) ?? 0,
+				text: sub.text,
+				speakerKey: sub.speaker || null,
+				emotion: null
+			}));
+		} else {
+			return null;
+		}
+
+		const colors = new Map();
+		for (const row of rows) {
+			if (row.speakerKey && !colors.has(row.speakerKey)) {
+				colors.set(row.speakerKey, SPEAKER_COLORS[colors.size % SPEAKER_COLORS.length]);
+			}
+			row.speaker = speakerName(row.speakerKey);
+			row.color = colors.get(row.speakerKey) || null;
+		}
+		return rows;
+	}
+
+	$: displaySegments = buildDisplaySegments(transcriptionResult, parsedSubtitles);
 
 	// Tooltip carries the model's confidence; the tag itself stays a bare label.
 	function emotionTitle(emotion) {
@@ -908,26 +946,38 @@
 				<!-- State: Transcription Success (parsed subtitles shown) -->
 				<!-- Combined success states as buttons are handled above -->
 			{:else if transcriptionResult && !isTranscribing}
-				{#if parsedSubtitles && parsedSubtitles.length > 0}
+				{#if displaySegments && displaySegments.length > 0}
 					<div class="transcription-results">
 						<h4>{m.db_transcribe_result()}:</h4>
-						<div class="subtitle-list">
-							{#each parsedSubtitles as subtitle (subtitle.id)}
-								{@const emotion = emotionBySubtitle.get(subtitle.id)}
-								<div class="subtitle-card">
-									<div class="subtitle-meta">
-										<div class="subtitle-timestamp">
-											<span class="time">{formatDurationHMS(subtitle.startTime)}</span>
-											<span class="separator"> → </span>
-											<span class="time">{formatDurationHMS(subtitle.endTime)}</span>
-										</div>
-										{#if emotion}
-											<span class="emotion-tag emotion-{emotion.label}" title={emotionTitle(emotion)}>
-												{emotionLabel(emotion.label)}
+						<div class="segment-list">
+							{#each displaySegments as segment (segment.id)}
+								<div
+									class="segment-card"
+									class:has-speaker={!!segment.speaker}
+									style={segment.color
+										? `--speaker-fg: ${segment.color.fg}; --speaker-bg: ${segment.color.bg}`
+										: ''}
+								>
+									<div class="segment-header">
+										{#if segment.speaker}
+											<span class="speaker-chip">
+												<span class="speaker-dot"></span>
+												{segment.speaker}
 											</span>
 										{/if}
+										{#if segment.emotion}
+											<span
+												class="emotion-tag emotion-{segment.emotion.label}"
+												title={emotionTitle(segment.emotion)}
+											>
+												{emotionLabel(segment.emotion.label)}
+											</span>
+										{/if}
+										<span class="segment-time">
+											{fmtMSS(segment.start)}<span class="separator">–</span>{fmtMSS(segment.end)}
+										</span>
 									</div>
-									<p class="subtitle-text">{subtitle.text}</p>
+									<p class="segment-text">{segment.text}</p>
 								</div>
 							{/each}
 						</div>
@@ -1508,7 +1558,7 @@
 		flex-shrink: 0;
 	}
 
-	.subtitle-list {
+	.segment-list {
 		flex-grow: 1;
 		overflow-y: auto;
 		padding-right: 8px;
@@ -1516,82 +1566,113 @@
 		scrollbar-width: thin;
 		scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 	}
-	.subtitle-list::-webkit-scrollbar {
+	.segment-list::-webkit-scrollbar {
 		width: 6px;
 	}
-	.subtitle-list::-webkit-scrollbar-track {
+	.segment-list::-webkit-scrollbar-track {
 		background: transparent;
 	}
-	.subtitle-list::-webkit-scrollbar-thumb {
+	.segment-list::-webkit-scrollbar-thumb {
 		background-color: rgba(255, 255, 255, 0.2);
 		border-radius: 3px;
 	}
 
-	.subtitle-card {
-		display: flex;
-		flex-direction: row;
-		gap: 16px;
-		align-items: center;
-		margin-bottom: 12px;
-		width: 100%;
-	}
-	.subtitle-meta {
+	/* Each turn is a card: who spoke and how they sounded lead the header, the
+	   timestamp trails it as muted metadata, and the text gets the full width. */
+	.segment-card {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-start;
-		gap: 6px;
-		flex-shrink: 0;
+		gap: 8px;
+		width: 100%;
+		margin-bottom: 10px;
+		padding: 12px 14px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 10px;
+		background-color: rgba(255, 255, 255, 0.025);
 	}
-	.subtitle-timestamp {
-		border: 1px solid rgba(255, 255, 255, 0.11);
-		border-radius: 6px;
-		padding: 6px 10px;
-		background-color: rgba(255, 255, 255, 0.05);
-		flex-shrink: 0;
-		white-space: nowrap;
+	/* The accent bar repeats the speaker's colour down the edge of the card, so
+	   a long back-and-forth stays scannable without reading a single label. */
+	.segment-card.has-speaker {
+		border-left: 3px solid var(--speaker-fg);
+	}
+
+	.segment-header {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.speaker-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		padding: 4px 11px;
+		border-radius: 999px;
 		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.3;
+		white-space: nowrap;
+		color: var(--speaker-fg);
+		background-color: var(--speaker-bg);
+	}
+	.speaker-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background-color: currentColor;
+		flex-shrink: 0;
 	}
 
 	.emotion-tag {
 		display: inline-block;
-		border-radius: 6px;
-		padding: 3px 8px;
-		font-size: 12px;
-		line-height: 1.2;
+		padding: 4px 11px;
+		border-radius: 999px;
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.3;
 		white-space: nowrap;
-		border: 1px solid currentColor;
 	}
 	/* One hue per label, reusing the palette the job-status chips already use. */
 	.emotion-angry {
 		color: #ff6b6b;
-		background-color: rgba(255, 107, 107, 0.12);
+		background-color: rgba(255, 107, 107, 0.16);
 	}
 	.emotion-sad {
 		color: #7fb3ff;
-		background-color: rgba(127, 179, 255, 0.12);
+		background-color: rgba(127, 179, 255, 0.16);
 	}
 	.emotion-positive {
 		color: #6ddf9c;
-		background-color: rgba(109, 223, 156, 0.12);
+		background-color: rgba(109, 223, 156, 0.16);
 	}
 	.emotion-neutral {
 		color: #aaa;
-		background-color: rgba(255, 255, 255, 0.06);
+		background-color: rgba(255, 255, 255, 0.08);
 	}
-	.time,
-	.separator {
-		color: #bbb;
+
+	.segment-time {
+		margin-left: auto;
 		font-family: 'JetBrains Mono', monospace;
+		font-size: 12px;
+		color: #6f6f6f;
+		white-space: nowrap;
 	}
-	.subtitle-text {
+	/* Undiarized results have no chips to trail, so the time leads instead. */
+	.segment-time:first-child {
+		margin-left: 0;
+	}
+	.segment-time .separator {
+		margin: 0 5px;
+	}
+
+	.segment-text {
 		color: #ddd;
-		flex-grow: 1;
 		min-width: 0;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
-		line-height: 1.5;
+		line-height: 1.55;
 		margin: 0;
-		padding-top: 2px;
 		font-size: 15px;
 	}
 
@@ -1791,16 +1872,13 @@
 		}
 	}
 	@media (max-width: 600px) {
-		.subtitle-card {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 8px;
+		.segment-card {
+			padding: 10px 12px;
 		}
-		.subtitle-meta {
-			flex-direction: row;
-			align-items: center;
-			flex-wrap: wrap;
-			margin-bottom: 4px;
+		/* Too narrow to trail the time on the same line as two pills — let it
+		   wrap onto its own line, still aligned right. */
+		.segment-time {
+			font-size: 11px;
 		}
 		.file-selected-info {
 			align-items: stretch;

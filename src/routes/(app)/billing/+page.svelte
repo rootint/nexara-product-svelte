@@ -67,6 +67,14 @@
 						как две.
 					</p>
 				</div>
+				{#if $dashboardStore.location === 'ru'}
+					<!-- The emotion surcharge is RU-only; ROW wallets are never charged
+					     for it, so there is nothing to warn those users about. -->
+					<div class="card referral-card">
+						<p class="card-title">{m.billing_emotions_title()}</p>
+						<p>{m.billing_emotions_body()}</p>
+					</div>
+				{/if}
 				<div class="card referral-card">
 					<p class="card-title">{m.billing_invoice_title()}</p>
 					<p>

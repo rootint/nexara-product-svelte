@@ -1,4 +1,4 @@
-function parseSrtTimeToSeconds(timeString) {
+export function parseSrtTimeToSeconds(timeString) {
 	// --- Input Validation ---
 	if (!timeString || typeof timeString !== 'string') {
 		return null; // Handle null, undefined, or non-string input

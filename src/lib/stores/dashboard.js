@@ -322,7 +322,8 @@ function createDashboardStore() {
 			numSpeakers,
 			model = 'whisper-1',
 			profanityFilter = false,
-			roles = null
+			roles = null,
+			emotions = false
 		) {
 			if (!apiKey) {
 				throw new Error('API ключ не найден. Невозможно выполнить транскрибацию.');
@@ -340,6 +341,9 @@ function createDashboardStore() {
 			formData.append('diarization_setting', diarizationSetting);
 			formData.append('language', isRussian ? 'ru' : '');
 			formData.append('profanity_filter', profanityFilter);
+			// Emotion recognition is a paid surcharge the backend only accepts with
+			// task=diarize on nexara-ru; sending it in any other combination is a 400.
+			formData.append('emotions', emotions);
 			if (roles != null) {
 				formData.append('roles', roles);
 			}

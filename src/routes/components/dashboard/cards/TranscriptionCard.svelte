@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { dashboardStore } from '$lib/stores/dashboard';
-	import { parseSrt, formatDurationHMS } from '$lib/utils/subtitles';
+	import { parseSrt, formatDurationHMS, parseSrtTimeToSeconds } from '$lib/utils/subtitles';
 	import {
 		UploadCloud,
 		File as FileIcon,
@@ -69,6 +69,10 @@
 	let parsedSubtitles = null; // Array of { id, startTime, endTime, text }
 	let copyButtonText = m.db_transcribe_copy();
 
+	// Emotion recognition is produced by the ASR model itself, so it only exists
+	// where the model does — see EMOTION_MODEL / EMOTION_LABELS in the apigateway.
+	const EMOTION_MODEL = 'nexara-ru';
+
 	// Diarization State
 	let enableDiarization = false;
 	let diarizationSetting = 'telephonic'; // 'general', 'telephonic', 'meeting'
@@ -78,7 +82,15 @@
 	let roleTagging = true;
 
 	// Model Selection State
-	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-1'
+	let selectedModel = 'whisper-1'; // 'whisper-1' or 'nexara-ru'
+
+	// Emotion Recognition State
+	// The backend only accepts `emotions` with task=diarize on nexara-ru and
+	// rejects every other combination with a 400, so mirror that gate here and
+	// force the flag back off whenever the combination stops being valid.
+	let enableEmotions = false;
+	$: emotionsAvailable = selectedModel === EMOTION_MODEL && enableDiarization;
+	$: if (!emotionsAvailable) enableEmotions = false;
 
 	// --- Async Job State ---
 	const POLL_INTERVAL_MS = 3000;
@@ -112,6 +124,65 @@
 			default:
 				return m.db_transcribe_status_in_progress();
 		}
+	}
+
+	function emotionLabel(label) {
+		switch (label) {
+			case 'angry':
+				return m.db_transcribe_emotion_angry();
+			case 'sad':
+				return m.db_transcribe_emotion_sad();
+			case 'positive':
+				return m.db_transcribe_emotion_positive();
+			case 'neutral':
+				return m.db_transcribe_emotion_neutral();
+			default:
+				return null;
+		}
+	}
+
+	// The result view renders subtitles parsed out of the SRT, but the emotion
+	// object hangs off the verbose_json segments — and the SRT chunker merges
+	// very short segments, so the two lists are not index-aligned. Match each
+	// subtitle to the scored segment it overlaps in time the most.
+	function buildEmotionMap(subtitles, segments) {
+		const map = new Map();
+		if (!Array.isArray(subtitles) || !Array.isArray(segments)) return map;
+
+		const scored = segments.filter((s) => emotionLabel(s?.emotion?.label));
+		if (!scored.length) return map;
+
+		for (const sub of subtitles) {
+			const start = parseSrtTimeToSeconds(sub.startTime);
+			const end = parseSrtTimeToSeconds(sub.endTime);
+			if (start == null || end == null) continue;
+
+			let best = null;
+			let bestOverlap = 0;
+			for (const seg of scored) {
+				const overlap = Math.min(end, seg.end ?? 0) - Math.max(start, seg.start ?? 0);
+				if (overlap > bestOverlap) {
+					bestOverlap = overlap;
+					best = seg;
+				}
+			}
+			if (best) map.set(sub.id, best.emotion);
+		}
+		return map;
+	}
+
+	$: emotionBySubtitle = buildEmotionMap(
+		parsedSubtitles,
+		transcriptionResult?.verbose_json?.segments
+	);
+
+	// Tooltip carries the model's confidence; the tag itself stays a bare label.
+	function emotionTitle(emotion) {
+		const label = emotionLabel(emotion?.label);
+		if (!label) return '';
+		const confidence = Number(emotion?.confidence);
+		if (!isFinite(confidence) || confidence <= 0) return label;
+		return `${label} · ${Math.round(confidence * 100)}%`;
 	}
 
 	function formatJobTime(iso) {
@@ -210,6 +281,8 @@
 		// Reset profanity filter
 		profanityFilter = false;
 		roleTagging = true;
+		// Reset emotion recognition
+		enableEmotions = false;
 	}
 
 	// --- Transcription Function ---
@@ -235,7 +308,8 @@
 				numSpeakers,
 				selectedModel,
 				profanityFilter,
-				enableDiarization && roleTagging ? 'auto' : null
+				enableDiarization && roleTagging ? 'auto' : null,
+				emotionsAvailable && enableEmotions
 			);
 
 			const jobId = submission?.job_id;
@@ -729,6 +803,20 @@
 					</div>
 				{/if}
 				<div class="transcription-settings">
+					<div class="model-selection">
+						<div class="model-label">{m.db_transcribe_model_label()}</div>
+						<div class="radio-group">
+							<label class="radio-label">
+								<input type="radio" bind:group={selectedModel} value="whisper-1" />
+								<span>Nexara</span>
+							</label>
+							<label class="radio-label">
+								<input type="radio" bind:group={selectedModel} value={EMOTION_MODEL} />
+								<span>{m.db_transcribe_model_nexara_ru()}</span>
+							</label>
+						</div>
+					</div>
+
 					<label class="checkbox-label">
 						<input type="checkbox" bind:checked={isRussian} />
 						{m.db_transcribe_is_russian()}
@@ -771,6 +859,12 @@
 									<input type="checkbox" bind:checked={roleTagging} />
 									{m.db_transcribe_role_tagging()}
 								</label>
+								{#if emotionsAvailable}
+									<label class="checkbox-label" title={m.db_transcribe_emotions_tooltip()}>
+										<input type="checkbox" bind:checked={enableEmotions} />
+										{m.db_transcribe_emotions()}
+									</label>
+								{/if}
 							</div>
 						{/if}
 					</div>
@@ -819,11 +913,19 @@
 						<h4>{m.db_transcribe_result()}:</h4>
 						<div class="subtitle-list">
 							{#each parsedSubtitles as subtitle (subtitle.id)}
+								{@const emotion = emotionBySubtitle.get(subtitle.id)}
 								<div class="subtitle-card">
-									<div class="subtitle-timestamp">
-										<span class="time">{formatDurationHMS(subtitle.startTime)}</span>
-										<span class="separator"> → </span>
-										<span class="time">{formatDurationHMS(subtitle.endTime)}</span>
+									<div class="subtitle-meta">
+										<div class="subtitle-timestamp">
+											<span class="time">{formatDurationHMS(subtitle.startTime)}</span>
+											<span class="separator"> → </span>
+											<span class="time">{formatDurationHMS(subtitle.endTime)}</span>
+										</div>
+										{#if emotion}
+											<span class="emotion-tag emotion-{emotion.label}" title={emotionTitle(emotion)}>
+												{emotionLabel(emotion.label)}
+											</span>
+										{/if}
 									</div>
 									<p class="subtitle-text">{subtitle.text}</p>
 								</div>
@@ -1433,6 +1535,13 @@
 		margin-bottom: 12px;
 		width: 100%;
 	}
+	.subtitle-meta {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
+		flex-shrink: 0;
+	}
 	.subtitle-timestamp {
 		border: 1px solid rgba(255, 255, 255, 0.11);
 		border-radius: 6px;
@@ -1441,6 +1550,33 @@
 		flex-shrink: 0;
 		white-space: nowrap;
 		font-size: 13px;
+	}
+
+	.emotion-tag {
+		display: inline-block;
+		border-radius: 6px;
+		padding: 3px 8px;
+		font-size: 12px;
+		line-height: 1.2;
+		white-space: nowrap;
+		border: 1px solid currentColor;
+	}
+	/* One hue per label, reusing the palette the job-status chips already use. */
+	.emotion-angry {
+		color: #ff6b6b;
+		background-color: rgba(255, 107, 107, 0.12);
+	}
+	.emotion-sad {
+		color: #7fb3ff;
+		background-color: rgba(127, 179, 255, 0.12);
+	}
+	.emotion-positive {
+		color: #6ddf9c;
+		background-color: rgba(109, 223, 156, 0.12);
+	}
+	.emotion-neutral {
+		color: #aaa;
+		background-color: rgba(255, 255, 255, 0.06);
 	}
 	.time,
 	.separator {
@@ -1660,7 +1796,10 @@
 			align-items: flex-start;
 			gap: 8px;
 		}
-		.subtitle-timestamp {
+		.subtitle-meta {
+			flex-direction: row;
+			align-items: center;
+			flex-wrap: wrap;
 			margin-bottom: 4px;
 		}
 		.file-selected-info {

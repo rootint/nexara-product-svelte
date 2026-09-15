@@ -1,6 +1,6 @@
 <script>
 	import icon from '$lib/assets/icon.png';
-	import { BookOpen, LogOut, MessageCircleQuestion, Activity, AudioLines, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
+	import { BookOpen, LogOut, MessageCircleQuestion, Activity, AudioLines, Radio, Home, CreditCard, Calendar, Key, Settings } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
 	import * as m from '$lib/paraglide/messages.js';
 	import { page } from '$app/stores';
@@ -29,6 +29,8 @@
 	const rootPathRegex = /^(\/en|\/ru)?\/?$/;
 	// Regex to check for playground path with optional language prefix
 	const playgroundPathRegex = /^(\/en|\/ru)?\/playground\/?/;
+	// Regex to check for realtime path with optional language prefix
+	const realtimePathRegex = /^(\/en|\/ru)?\/realtime\/?/;
 	// Regex to check for billing path with optional language prefix
 	const billingPathRegex = /^(\/en|\/ru)?\/billing\/?/;
     // Regex to check for usage path with optional language prefix
@@ -73,6 +75,19 @@
 				class:text-normal={!playgroundPathRegex.test($page.url.pathname)}
 			>
 				{m.db_sidebar_playground()}
+			</p>
+		</a>
+		<a
+			href="/realtime"
+			class="section-button"
+			class:selected={realtimePathRegex.test($page.url.pathname)}
+		>
+			<Radio />
+			<p
+				class:text-selected={realtimePathRegex.test($page.url.pathname)}
+				class:text-normal={!realtimePathRegex.test($page.url.pathname)}
+			>
+				{m.db_sidebar_realtime()}
 			</p>
 		</a>
 		<a href="/billing" class="section-button" class:selected={billingPathRegex.test($page.url.pathname)}>

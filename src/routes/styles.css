@@ -163,7 +163,8 @@ p {
 	transform-style: preserve-3d;
 }
 .card::before,
-.transcription-card::before {
+.transcription-card::before,
+.realtime-card::before {
 	content: '';
 	position: absolute;
 	top: 0;

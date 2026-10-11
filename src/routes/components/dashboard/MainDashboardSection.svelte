@@ -28,11 +28,11 @@
 	let isKeyCopied = false;
 	let inputCredits = null;
 	let payments = null;
-	let subtitleText = 'Минимальная сумма - 200 ₽';
+	let subtitleText = 'Минимальная сумма - 360 ₽';
 	let isButtonDisabled = false;
 
 	$: isButtonDisabled =
-		inputCredits < 200 ||
+		inputCredits < 360 ||
 		inputCredits === null ||
 		inputCredits === '' ||
 		inputCredits + $dashboardStore.credits > 99999999;
@@ -40,7 +40,7 @@
 		inputCredits + $dashboardStore.credits > 99999999
 			? 'Максимальный размер кошелька - 99 999 999 ₽'
 			: isButtonDisabled
-				? 'Минимальная сумма - 200 ₽'
+				? 'Минимальная сумма - 360 ₽'
 				: '~ ' +
 					(inputCredits / ($dashboardStore.personalPrice * 60)).toFixed(0) +
 					' мин транскрибации';

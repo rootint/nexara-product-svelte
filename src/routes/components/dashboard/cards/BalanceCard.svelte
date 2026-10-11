@@ -11,7 +11,7 @@
 	let isButtonDisabled = false;
 
 	$: isButtonDisabled =
-		inputCredits < (languageTag() === 'ru' ? 200 : 10) ||
+		inputCredits < (languageTag() === 'ru' ? 360 : 10) ||
 		inputCredits === null ||
 		inputCredits === '' ||
 		inputCredits + $dashboardStore.credits > 99999999;
@@ -34,7 +34,7 @@
 	async function handleGetCredits() {
 		try {
 			if (languageTag() === 'ru') {
-				if (inputCredits >= 200) {
+				if (inputCredits >= 360) {
 					var receipt = {
 						items: [
 							//товарные позициии

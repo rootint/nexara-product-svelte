@@ -3,16 +3,16 @@ import { writable } from 'svelte/store';
 import { env } from '$env/dynamic/public';
 import { ApiClient } from '$lib/api/client';
 
-// Short, stable per-user fingerprint derived from the auth token. Used to
-// namespace browser-local caches so one user's data can't be read back by the
-// next user who signs in on the same browser. Not security-sensitive — it only
-// needs to differ between users, so a simple non-cryptographic hash is fine.
-function hashToken(token) {
-	let h = 0;
-	for (let i = 0; i < token.length; i++) {
-		h = (Math.imul(31, h) + token.charCodeAt(i)) | 0;
-	}
-	return (h >>> 0).toString(36);
+// Query string for the usage filters shared by /get_usage, /get_usage_stats
+// and /export_usage_stats. Unset filters are left out so the backend defaults
+// apply.
+function usageFilterParams({ dateFrom, dateTo, tz, apiKeyId } = {}) {
+	const params = new URLSearchParams();
+	if (dateFrom) params.set('date_from', dateFrom);
+	if (dateTo) params.set('date_to', dateTo);
+	if (tz) params.set('tz', tz);
+	if (apiKeyId != null) params.set('api_key_id', String(apiKeyId));
+	return params;
 }
 
 function createDashboardStore() {
@@ -483,92 +483,54 @@ function createDashboardStore() {
 			}
 		},
 
-		async getHistory(nDays = 30) {
-			const token = localStorage.getItem('auth_token');
-			if (!token) {
-				throw new Error('Auth token not found');
-			}
-
-			// Scope the cache to the current user's token so a rate-limit/offline
-			// fallback can never surface a previous user's data on this browser.
-			const userScope = hashToken(token);
-			const CACHE_KEY = `nexara_usage_history_${userScope}`;
-			const CACHE_TIMESTAMP_KEY = `nexara_usage_history_timestamp_${userScope}`;
-
-			try {
-				const response = await fetch(`${api.baseUrl}/get_history/${nDays}`, {
-					method: 'GET',
-					headers: {
-						Authorization: `Bearer ${token}`
-					}
-				});
-
-				if (response.ok) {
-					const data = await response.json();
-					localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-					localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-					return { data, fromCache: false };
-				} else if (response.status === 429) {
-					const cachedData = localStorage.getItem(CACHE_KEY);
-					const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-
-					if (cachedData) {
-						return {
-							data: JSON.parse(cachedData),
-							fromCache: true,
-							cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
-						};
-					} else {
-						throw new Error('Rate limit exceeded and no cached data available');
-					}
-				} else {
-					throw new Error('Failed to fetch usage history');
-				}
-			} catch (error) {
-				const cachedData = localStorage.getItem(CACHE_KEY);
-				const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-
-				if (cachedData) {
-					return {
-						data: JSON.parse(cachedData),
-						fromCache: true,
-						cachedAt: cachedTimestamp ? new Date(parseInt(cachedTimestamp)) : null
-					};
-				}
-
-				console.error('Usage History Error:', error);
-				throw error;
-			}
-		},
-
 		// Keyset-paginated, per-request billed usage feed (newest first).
 		// Pass the previous response's `next_cursor` back as `cursor` for the
-		// next (older) page. Returns the raw payload:
+		// next (older) page. Optional filters match getUsageStats. Returns the
+		// raw payload:
 		//   { items, next_cursor, has_more, currency }
-		async getUsage({ limit = 50, cursor } = {}) {
-			const token = localStorage.getItem('auth_token');
-			if (!token) {
-				throw new Error('Auth token not found');
-			}
-
-			const params = new URLSearchParams();
+		async getUsage({ limit = 50, cursor, ...filters } = {}) {
+			const params = usageFilterParams(filters);
 			params.set('limit', String(limit));
 			if (cursor != null) {
 				params.set('cursor', String(cursor));
 			}
+			return api.makeRequest(`/get_usage?${params.toString()}`, { method: 'GET' });
+		},
 
-			const response = await fetch(`${api.baseUrl}/get_usage?${params.toString()}`, {
+		// Daily cost / minutes / calls for the usage graph, each day split by key.
+		// dateFrom/dateTo are 'YYYY-MM-DD' (both inclusive) in `tz`; apiKeyId
+		// narrows to one key. Returns the raw payload:
+		//   { date_from, date_to, tz, api_key_id, currency, totals, keys, days }
+		async getUsageStats(filters = {}) {
+			const params = usageFilterParams(filters);
+			return api.makeRequest(`/get_usage_stats?${params.toString()}`, { method: 'GET' });
+		},
+
+		// Same filters as getUsageStats, as a CSV file (one row per day and key).
+		// The endpoint needs the bearer token, so it can't be a plain link: the
+		// file is fetched here and handed back as a Blob for the page to save.
+		async exportUsageStats(filters = {}) {
+			const token = localStorage.getItem('auth_token');
+			const params = usageFilterParams(filters);
+			const response = await fetch(`${api.baseUrl}/export_usage_stats?${params.toString()}`, {
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
+				headers: { Authorization: token ? `Bearer ${token}` : '' }
 			});
-
 			if (!response.ok) {
-				throw new Error('Failed to fetch usage history');
+				throw new Error('Failed to export usage');
 			}
-
-			return response.json();
+			// Cross-origin, CORS hides Content-Disposition unless the API exposes
+			// it, so fall back to the same name the backend would give.
+			const disposition = response.headers.get('Content-Disposition') ?? '';
+			const match = disposition.match(/filename="([^"]+)"/);
+			const fallback =
+				filters.dateFrom && filters.dateTo
+					? `nexara-usage-${filters.dateFrom}-${filters.dateTo}.csv`
+					: 'nexara-usage.csv';
+			return {
+				blob: await response.blob(),
+				filename: match ? match[1] : fallback
+			};
 		}
 	};
 }

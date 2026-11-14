@@ -4,14 +4,15 @@
 	import { languageTag } from '$lib/paraglide/runtime.js';
 	import { onMount } from 'svelte';
 
-	let usageData = null;
-	let fromCache = false;
-	let cachedAt = null;
+	let stats = null;
 	let isLoading = true;
 	let error = null;
 	let hasFetched = false;
 
-	async function fetchHistory() {
+	// Days counted in the viewer's own timezone, matching the Usage page.
+	const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+	async function fetchStats() {
 		if (hasFetched) return;
 		// Claim the fetch synchronously so onMount and the reactive trigger can't
 		// both fire it, and a failure doesn't re-fire it on every store update.
@@ -20,10 +21,9 @@
 		try {
 			isLoading = true;
 			error = null;
-			const result = await dashboardStore.getHistory(30);
-			usageData = result.data;
-			fromCache = result.fromCache;
-			cachedAt = result.cachedAt;
+			// Backend defaults to the last 30 days. Same source as the Usage tab,
+			// so these totals match it (frozen request_cost, not live pricing).
+			stats = await dashboardStore.getUsageStats({ tz: userTimeZone });
 		} catch (err) {
 			error = err.message;
 		} finally {
@@ -32,11 +32,11 @@
 	}
 
 	$: if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0 && !hasFetched) {
-		fetchHistory();
+		fetchStats();
 	}
 
 	onMount(async () => {
-		await fetchHistory();
+		await fetchStats();
 	});
 </script>
 
@@ -54,12 +54,12 @@
 			<p class="error-text">{m.db_usage_error()}</p>
 			<p class="error-detail">{error}</p>
 		</div>
-	{:else if usageData}
+	{:else if stats}
 		<div class="stats-container">
 			<div class="stat-item">
 				<p class="stat-label">{m.db_usage_minutes_label()}</p>
 				<h2 class="stat-value">
-					{usageData.total_minutes.toLocaleString(languageTag() === 'ru' ? 'ru-RU' : 'en-GB', {
+					{stats.totals.minutes.toLocaleString(languageTag() === 'ru' ? 'ru-RU' : 'en-GB', {
 						minimumFractionDigits: 2,
 						maximumFractionDigits: 2
 					})}
@@ -72,27 +72,21 @@
 			<div class="stat-item">
 				<p class="stat-label">{m.db_usage_money_label()}</p>
 				<h2 class="stat-value">
-					{#if usageData.currency === 'RUB'}
-						{usageData.total_cost.toLocaleString('ru-RU', {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2
-						})} ₽
-					{:else}
-						€{usageData.total_cost.toLocaleString('en-GB', {
+					{#if stats.currency === 'EUR'}
+						€{stats.totals.cost.toLocaleString('en-GB', {
 							minimumFractionDigits: 2,
 							maximumFractionDigits: 2
 						})}
+					{:else}
+						{stats.totals.cost.toLocaleString('ru-RU', {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2
+						})} ₽
 					{/if}
 				</h2>
 				<p class="stat-subtitle">{m.db_usage_money_subtitle()}</p>
 			</div>
 		</div>
-
-		{#if fromCache && cachedAt}
-			<div class="period-info">
-				<p>{m.db_usage_cached()}</p>
-			</div>
-		{/if}
 	{/if}
 </div>
 
@@ -179,20 +173,6 @@
 		width: 1px;
 		height: 80px;
 		background-color: rgba(250, 250, 250, 0.11);
-	}
-
-	.period-info {
-		padding-top: 16px;
-		border-top: 1px solid rgba(250, 250, 250, 0.11);
-		width: 100%;
-		display: flex;
-	}
-
-	.period-info p {
-		color: rgba(250, 250, 250, 0.5);
-		font-size: 14px;
-		margin: 0;
-		text-align: center;
 	}
 
 	@media (max-width: 768px) {

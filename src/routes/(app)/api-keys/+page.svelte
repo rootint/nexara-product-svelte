@@ -6,8 +6,10 @@
 
 	let historyData = null;
 	let historyLoading = false;
-	let historyFromCache = false;
 	let historyFetched = false;
+
+	// Days counted in the viewer's own timezone, matching the Usage page.
+	const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 	onMount(async () => {
 		if ($dashboardStore.apiKeys && $dashboardStore.apiKeys.length > 0) {
@@ -26,9 +28,8 @@
 		historyFetched = true;
 		historyLoading = true;
 		try {
-			const result = await dashboardStore.getHistory(30);
-			historyData = result.data;
-			historyFromCache = result.fromCache;
+			// Last 30 days (backend default), same source as the Usage tab.
+			historyData = await dashboardStore.getUsageStats({ tz: userTimeZone });
 		} catch (error) {
 			console.error('Failed to fetch history:', error);
 		} finally {

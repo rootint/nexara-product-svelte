@@ -18,7 +18,9 @@
 
 	function getKeyUsage(apiKey) {
 		if (!historyData || !historyData.keys) return null;
-		return historyData.keys.find((k) => k.key_id === apiKey.id || k.key_name === apiKey.name);
+		const usage = historyData.keys.find((k) => k.id === apiKey.id);
+		// getUsageStats lists every active key zero-filled; show "-" for unused ones.
+		return usage && usage.calls > 0 ? usage : null;
 	}
 
 	function formatCost(cost) {
@@ -316,7 +318,7 @@
 		font-size: 16px;
 	}
 	.buy-btn {
-        margin-top: 24px;
+		margin-top: 24px;
 		background-color: rgba(250, 250, 250);
 		backdrop-filter: blur(16px);
 		transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
